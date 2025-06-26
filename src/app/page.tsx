@@ -183,6 +183,17 @@ export default function HomePage() {
   const upcomingGames = games.filter((game) => game.status === "upcoming");
   const bestOddsGames = games.filter((game) => game.bestOdd).slice(0, 3);
 
+  // Novo: filtrar jogos pela busca
+  const trimmedQuery = searchQuery.trim().toLowerCase();
+  const filteredGames = trimmedQuery
+    ? games.filter(
+        (game) =>
+          game.teams.toLowerCase().includes(trimmedQuery) ||
+          game.category.toLowerCase().includes(trimmedQuery) ||
+          (game.league?.toLowerCase().includes(trimmedQuery) ?? false)
+      )
+    : [];
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <Header />
@@ -210,50 +221,65 @@ export default function HomePage() {
             </div>
           </section>
 
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-          >
-            <FavoriteCategories
-              allCategories={allCategories}
-              favoriteCategories={favoriteCategories}
-              setFavoriteCategories={setFavoriteCategories}
-            />
-            <DroppableRemoveArea isDragging={isDragging} />
-          </DndContext>
-
-          {/* Melhores Odds */}
-          <GamesSection
-            games={bestOddsGames}
-            title="Melhores Odds"
-            icon={<TrendingUp className="h-5 w-5 text-green-500" />}
-            showFilters={false}
-            onViewDetails={handleViewGameDetails}
-          />
-
-          {/* Jogos Ao Vivo */}
-          {liveGames.length > 0 && (
+          {/* Se estiver pesquisando, mostrar só os resultados filtrados */}
+          {trimmedQuery ? (
             <GamesSection
-              games={liveGames}
-              title="Jogos Ao Vivo"
-              icon={
-                <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
-              }
+              games={filteredGames}
+              title={`Resultados para "${searchQuery}"`}
+              icon={<Search className="h-5 w-5 text-primary" />}
               showFilters={false}
               onViewDetails={handleViewGameDetails}
             />
-          )}
+          ) : (
+            <>
+              {session ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                >
+                  <FavoriteCategories
+                    allCategories={allCategories}
+                    favoriteCategories={favoriteCategories}
+                    setFavoriteCategories={setFavoriteCategories}
+                  />
+                  <DroppableRemoveArea isDragging={isDragging} />
+                </DndContext>
+              ) : null}
 
-          {/* Próximos Jogos */}
-          <GamesSection
-            games={upcomingGames}
-            title="Próximos Jogos"
-            icon={<Clock className="h-5 w-5" />}
-            showFilters={true}
-            onViewDetails={handleViewGameDetails}
-          />
+              {/* Melhores Odds */}
+              <GamesSection
+                games={bestOddsGames}
+                title="Melhores Odds"
+                icon={<TrendingUp className="h-5 w-5 text-green-500" />}
+                showFilters={false}
+                onViewDetails={handleViewGameDetails}
+              />
+
+              {/* Jogos Ao Vivo */}
+              {liveGames.length > 0 && (
+                <GamesSection
+                  games={liveGames}
+                  title="Jogos Ao Vivo"
+                  icon={
+                    <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+                  }
+                  showFilters={false}
+                  onViewDetails={handleViewGameDetails}
+                />
+              )}
+
+              {/* Próximos Jogos */}
+              <GamesSection
+                games={upcomingGames}
+                title="Próximos Jogos"
+                icon={<Clock className="h-5 w-5" />}
+                showFilters={true}
+                onViewDetails={handleViewGameDetails}
+              />
+            </>
+          )}
         </div>
       </main>
     </div>
