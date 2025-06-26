@@ -6,7 +6,6 @@ import { MainLayout } from "@/components/layout/main-layout";
 import { OddsGamesList } from "@/components/games/OddsGamesList";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { OddsEvent } from "@/types/game";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -65,7 +64,7 @@ function SearchBar({
         type="text"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Buscar por time ou campeonato..."
+        placeholder="Buscar por time..."
         className="max-w-md"
       />
       <Button onClick={handleSearch} variant="default">
@@ -85,12 +84,6 @@ export default function HomePage() {
   );
   const [appliedSearch, setAppliedSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-
-  const handleGameSelect = (game: OddsEvent) => {
-    console.log("Jogo selecionado:", game);
-    // Aqui você pode navegar para a página de detalhes
-    // router.push(`/game/${game.id}`)
-  };
 
   if (status === "loading") {
     return <HomePageSkeleton />;
@@ -139,7 +132,6 @@ export default function HomePage() {
           {selectedSport ? (
             <OddsGamesList
               sportKey={selectedSport}
-              onGameSelect={handleGameSelect}
               searchTerm={appliedSearch}
               sortOrder={sortOrder}
             />

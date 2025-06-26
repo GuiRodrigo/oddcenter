@@ -76,7 +76,7 @@ export function GameCard({
   return (
     <Card
       className={cn(
-        "transition-all duration-200 hover:shadow-md cursor-pointer",
+        "transition-all duration-200 hover:shadow-md cursor-pointer max-w-[75vw]",
         isFeatured && "border-primary bg-primary/5"
       )}
       onClick={() => onViewDetails?.(game.id)}
@@ -85,7 +85,7 @@ export function GameCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center gap-2">
             <Badge variant="secondary" className="text-xs">
-              {game.category}
+              {/* {game.category} */}
             </Badge>
             <Badge className={cn("text-xs", getStatusColor(game.status))}>
               {getStatusText(game.status)}

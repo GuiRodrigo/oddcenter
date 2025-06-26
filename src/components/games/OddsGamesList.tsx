@@ -8,10 +8,10 @@ import { Calendar, Clock, TrendingUp } from "lucide-react";
 import { useOdds } from "@/components/odds/OddsContext";
 import type { OddsEvent, OddsBookmaker } from "@/types/game";
 import { format } from "date-fns";
+import { useRouter } from "next/navigation";
 
 type OddsGamesListProps = {
   sportKey: string;
-  onGameSelect?: (game: OddsEvent) => void;
   searchTerm?: string;
   sortOrder?: "asc" | "desc";
 };
@@ -78,10 +78,10 @@ interface BestOddsComparison {
 
 export function OddsGamesList({
   sportKey,
-  onGameSelect,
   searchTerm,
   sortOrder = "asc",
 }: OddsGamesListProps) {
+  const router = useRouter();
   const { fetchOdds } = useOdds();
   const [games, setGames] = useState<OddsEvent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -96,6 +96,8 @@ export function OddsGamesList({
       try {
         const data = await fetchOdds(sportKey);
         setGames(data);
+        // Salvar no cache para a página de detalhes
+        localStorage.setItem("cachedGames", JSON.stringify(data));
       } catch (err) {
         setError("Erro ao carregar jogos");
         console.error(err);
@@ -271,12 +273,12 @@ export function OddsGamesList({
             <Card
               key={game.id}
               className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => onGameSelect?.(game)}
+              onClick={() => router.push(`/game/${game.id}`)}
             >
               <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3">
+                <div className="flex items-start justify-between mb-3 flex-wrap gap-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs truncate">
                       {game.sport_title}
                     </Badge>
                     <Badge variant="secondary" className="text-xs">
