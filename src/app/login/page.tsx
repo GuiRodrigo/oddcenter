@@ -18,7 +18,6 @@ export default function LoginPage() {
   const [isCheckingSession, setIsCheckingSession] = useState(true);
   const router = useRouter();
 
-  // Verifica se o usuário já está logado
   useEffect(() => {
     const checkSession = async () => {
       const session = await getSession();

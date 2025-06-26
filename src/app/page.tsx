@@ -23,8 +23,9 @@ import {
 } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
 import { DroppableRemoveArea } from "@/components/dnd/DroppableRemoveArea";
+// import { OddsProvider } from "@/components/providers/OddsProvider";
+// import OddsList from "@/components/layout/OddsList";
 
-// Componente Skeleton para a página Home usando shadcn/ui Skeleton
 function HomePageSkeleton() {
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -78,7 +79,6 @@ export default function HomePage() {
     allCategories[1],
   ]);
 
-  // Dados mais realistas dos jogos
   const [games] = useState<Game[]>([
     {
       id: 1,
@@ -150,7 +150,7 @@ export default function HomePage() {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    setIsDragging(true);
+    if (event) setIsDragging(true);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -184,7 +184,7 @@ export default function HomePage() {
   const upcomingGames = games.filter((game) => game.status === "upcoming");
   const bestOddsGames = games.filter((game) => game.bestOdd).slice(0, 3);
 
-  // Novo: filtrar jogos pela busca
+  // Filtrar jogos pela busca
   const trimmedQuery = searchQuery.trim().toLowerCase();
   const filteredGames = trimmedQuery
     ? games.filter(
@@ -200,7 +200,6 @@ export default function HomePage() {
       <Header />
       <main className="flex-1 container py-8 px-4 md:px-6">
         <div className="space-y-8">
-          {/* Boas-vindas e Busca */}
           <section className="text-center space-y-2">
             <h1 className="text-3xl font-bold">
               Bem-vindo{session ? `, ${session.user?.name}` : ""}!
@@ -222,7 +221,6 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Se estiver pesquisando, mostrar só os resultados filtrados */}
           {trimmedQuery ? (
             <GamesSection
               games={filteredGames}
@@ -249,7 +247,6 @@ export default function HomePage() {
                 </DndContext>
               ) : null}
 
-              {/* Melhores Odds */}
               <GamesSection
                 games={bestOddsGames}
                 title="Melhores Odds"
@@ -258,7 +255,6 @@ export default function HomePage() {
                 onViewDetails={handleViewGameDetails}
               />
 
-              {/* Jogos Ao Vivo */}
               {liveGames.length > 0 && (
                 <GamesSection
                   games={liveGames}
@@ -271,7 +267,6 @@ export default function HomePage() {
                 />
               )}
 
-              {/* Próximos Jogos */}
               <GamesSection
                 games={upcomingGames}
                 title="Próximos Jogos"
@@ -282,6 +277,10 @@ export default function HomePage() {
             </>
           )}
         </div>
+        {/* <h1 className="text-2xl font-bold mb-4">Esportes Disponíveis</h1>
+        <OddsProvider>
+          <OddsList />
+        </OddsProvider> */}
       </main>
     </div>
   );
