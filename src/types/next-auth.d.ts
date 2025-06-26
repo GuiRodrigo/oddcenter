@@ -21,7 +21,6 @@ declare module "next-auth/jwt" {
 
 export default withAuth(
     function middleware(req) {
-        // Middleware adicional pode ser adicionado aqui
     },
     {
         callbacks: {
