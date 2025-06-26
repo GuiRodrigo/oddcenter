@@ -16,6 +16,10 @@ export default withAuth(
                     return true
                 }
 
+                if (pathname === "/") {
+                    return true
+                }
+
                 // Para outras páginas, verifica se tem token (está logado)
                 return !!token
             },
