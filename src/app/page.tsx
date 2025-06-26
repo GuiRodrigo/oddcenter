@@ -1,12 +1,21 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { OddsGamesList } from "@/components/games/OddsGamesList";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { OddsEvent } from "@/types/game";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 function HomePageSkeleton() {
   const [selectedSport, setSelectedSport] = useState<string>(
@@ -34,11 +43,48 @@ function HomePageSkeleton() {
   );
 }
 
+// Componente SearchBar isolado
+function SearchBar({
+  onSearch,
+  onClear,
+}: {
+  onSearch: (term: string) => void;
+  onClear: () => void;
+}) {
+  const [value, setValue] = useState("");
+  const handleSearch = useCallback(() => {
+    onSearch(value);
+  }, [onSearch, value]);
+  const handleClear = useCallback(() => {
+    setValue("");
+    onClear();
+  }, [onClear]);
+  return (
+    <div className="flex justify-center mb-4 gap-2">
+      <Input
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Buscar por time ou campeonato..."
+        className="max-w-md"
+      />
+      <Button onClick={handleSearch} variant="default">
+        Buscar
+      </Button>
+      <Button onClick={handleClear} variant="outline">
+        Limpar
+      </Button>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { data: session, status } = useSession();
   const [selectedSport, setSelectedSport] = useState<string>(
     "soccer_brazil_campeonato"
   );
+  const [appliedSearch, setAppliedSearch] = useState("");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
   const handleGameSelect = (game: OddsEvent) => {
     console.log("Jogo selecionado:", game);
@@ -67,11 +113,35 @@ export default function HomePage() {
             </p>
           </div>
 
+          {/* Campo de busca isolado */}
+          <SearchBar
+            onSearch={setAppliedSearch}
+            onClear={() => setAppliedSearch("")}
+          />
+
+          {/* Filtros de ordenação */}
+          <div className="flex justify-center gap-2 mb-4">
+            <Select
+              value={sortOrder}
+              onValueChange={(v) => setSortOrder(v as "asc" | "desc")}
+            >
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Ordem" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">Mais próximos</SelectItem>
+                <SelectItem value="desc">Mais distantes</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Lista de jogos */}
           {selectedSport ? (
             <OddsGamesList
               sportKey={selectedSport}
               onGameSelect={handleGameSelect}
+              searchTerm={appliedSearch}
+              sortOrder={sortOrder}
             />
           ) : (
             <Card>

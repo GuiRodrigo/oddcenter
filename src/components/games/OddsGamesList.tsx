@@ -12,6 +12,8 @@ import { format } from "date-fns";
 type OddsGamesListProps = {
   sportKey: string;
   onGameSelect?: (game: OddsEvent) => void;
+  searchTerm?: string;
+  sortOrder?: "asc" | "desc";
 };
 
 // Função para identificar esportes que não têm empate
@@ -74,7 +76,12 @@ interface BestOddsComparison {
   allPrices: { bookmaker: string; price: number }[];
 }
 
-export function OddsGamesList({ sportKey, onGameSelect }: OddsGamesListProps) {
+export function OddsGamesList({
+  sportKey,
+  onGameSelect,
+  searchTerm,
+  sortOrder = "asc",
+}: OddsGamesListProps) {
   const { fetchOdds } = useOdds();
   const [games, setGames] = useState<OddsEvent[]>([]);
   const [loading, setLoading] = useState(false);
@@ -194,6 +201,24 @@ export function OddsGamesList({ sportKey, onGameSelect }: OddsGamesListProps) {
       .filter((item): item is BestOddsComparison => item !== null);
   };
 
+  // Filtrar jogos pelo termo de busca
+  const filteredGames = searchTerm
+    ? games.filter(
+        (game) =>
+          game.home_team.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          game.away_team.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          game.sport_title.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    : games;
+
+  // Ordenar jogos apenas por data
+  const sortedGames = [...filteredGames];
+  sortedGames.sort((a, b) => {
+    const aDate = new Date(a.commence_time).getTime();
+    const bDate = new Date(b.commence_time).getTime();
+    return sortOrder === "asc" ? aDate - bDate : bDate - aDate;
+  });
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -214,7 +239,7 @@ export function OddsGamesList({ sportKey, onGameSelect }: OddsGamesListProps) {
     );
   }
 
-  if (!games.length) {
+  if (!sortedGames.length) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
@@ -230,11 +255,11 @@ export function OddsGamesList({ sportKey, onGameSelect }: OddsGamesListProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold">Jogos Disponíveis</h2>
-        <Badge variant="secondary">{games.length} jogos</Badge>
+        <Badge variant="secondary">{sortedGames.length} jogos</Badge>
       </div>
 
       <div className="grid gap-4">
-        {games.map((game) => {
+        {sortedGames.map((game) => {
           const { date, time } = formatGameTime(game.commence_time);
           const oddsData = getBookmakersOdds(game);
 
