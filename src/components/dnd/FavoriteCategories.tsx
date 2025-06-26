@@ -1,180 +1,170 @@
 "use client";
-
-import {
-  useState,
-  type ComponentProps,
-  type Dispatch,
-  type SetStateAction,
-  type ReactElement,
-} from "react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { OddsSport } from "@/types/game";
 import {
   DndContext,
   closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
+  DragOverlay,
+  SensorDescriptor,
+  SensorOptions,
+  DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
   SortableContext,
-  sortableKeyboardCoordinates,
   useSortable,
-  rectSortingStrategy,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Card, CardContent, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Star, PlusCircle, Trophy, MinusCircle } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from "@/components/ui/dialog";
+import { Star as StarIcon } from "lucide-react";
+import { SetStateAction } from "react";
 
-type Category = {
-  id: string;
-  name: string;
-  icon: ReactElement;
-};
+interface FavoriteCategoriesProps {
+  sensors: SensorDescriptor<SensorOptions>[];
+  handleDragEnd: (event: DragEndEvent) => void;
+  setActiveDrag: (value: SetStateAction<string | null>) => void;
+  favoriteSportsDetails: (OddsSport | undefined)[];
+  selectedSport: string | undefined;
+  onSportSelect: (sportKey: string) => void;
+  toggleFavorite: (sportKey: string) => void;
+  activeDrag: string | null;
+}
 
-// Componente para um item arrastável
-function SortableItem({
-  id,
-  children,
-}: {
-  id: any;
-  children: React.ReactNode;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id });
-
-  const style: ComponentProps<"div">["style"] = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
+export function FavoriteCategories({
+  sensors,
+  handleDragEnd,
+  setActiveDrag,
+  favoriteSportsDetails,
+  selectedSport,
+  onSportSelect,
+  toggleFavorite,
+  activeDrag,
+}: FavoriteCategoriesProps) {
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      {children}
+    <div>
+      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        FAVORITOS
+      </h3>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        onDragStart={(e) => setActiveDrag(e.active.id as string)}
+      >
+        <SortableContext
+          items={favoriteSportsDetails.map((s) => s?.key ?? "") ?? []}
+          strategy={verticalListSortingStrategy}
+        >
+          <div className="space-y-1 min-h-[40px]">
+            {favoriteSportsDetails.length === 0 && (
+              <div className="text-xs text-muted-foreground px-2 py-1">
+                Nenhum favorito ainda.
+              </div>
+            )}
+            {favoriteSportsDetails.map((sport) => (
+              <DraggableFavorite
+                key={sport!.key}
+                sport={sport!}
+                selectedSport={selectedSport}
+                onSportSelect={onSportSelect}
+                onToggleFavorite={toggleFavorite}
+                isDragging={activeDrag === sport!.key}
+              />
+            ))}
+          </div>
+        </SortableContext>
+        {/* Overlay do item sendo arrastado */}
+        <DragOverlay>
+          {activeDrag && (
+            <div className="opacity-80">
+              {(() => {
+                const sport = favoriteSportsDetails.find(
+                  (s) => s?.key === activeDrag
+                );
+                if (!sport) return null;
+                return (
+                  <div className="flex items-center w-50 flex-1 justify-start gap-2 h-8 text-sm bg-background border rounded shadow px-2">
+                    <span className="truncate">{sport.title}</span>
+                    <StarIcon
+                      className="h-4 w-4 text-yellow-400 ml-auto"
+                      fill="currentColor"
+                    />
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }
 
-type FavoriteCategoriesProps = {
-  allCategories: Category[];
-  favoriteCategories: Category[];
-  setFavoriteCategories: Dispatch<SetStateAction<Category[]>>;
-};
-
-export function FavoriteCategories({
-  allCategories,
-  favoriteCategories,
-  setFavoriteCategories,
-}: FavoriteCategoriesProps) {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  const availableCategories = allCategories.filter(
-    (c) => !favoriteCategories.some((fav) => fav.id === c.id)
-  );
-
-  const handleAddCategory = (category: Category) => {
-    setFavoriteCategories((prev) => [...prev, category]);
-  };
-
-  const handleRemoveCategory = (categoryId: string) => {
-    setFavoriteCategories((prev) => prev.filter((c) => c.id !== categoryId));
-  };
-
+// COMPONENTE DRAGGABLE FAVORITE
+function DraggableFavorite({
+  sport,
+  selectedSport,
+  onSportSelect,
+  onToggleFavorite,
+  isDragging,
+}: {
+  sport: OddsSport;
+  selectedSport?: string;
+  onSportSelect: (sportKey: string) => void;
+  onToggleFavorite: (sportKey: string) => void;
+  isDragging: boolean;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    isDragging: sortableDragging,
+    transform,
+    transition,
+  } = useSortable({ id: sport.key });
   return (
-    <section>
-      <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-        <Star className="h-5 w-5 text-yellow-500" />
-        Minhas Categorias Favoritas
-      </h2>
-      <Card className="bg-card p-4">
-        <SortableContext
-          items={favoriteCategories}
-          strategy={rectSortingStrategy}
-        >
-          <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-0">
-            {favoriteCategories.map((category) => (
-              <SortableItem key={category.id} id={category.id}>
-                <div className="relative group flex flex-col items-center justify-center p-4 border rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-grab">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                    onClick={() => handleRemoveCategory(category.id)}
-                  >
-                    <MinusCircle className="h-5 w-5 text-destructive" />
-                  </Button>
-                  {category.icon}
-                  <span className="mt-2 text-sm font-medium">
-                    {category.name}
-                  </span>
-                </div>
-              </SortableItem>
-            ))}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex flex-col items-center justify-center p-4 h-auto min-h-[100px] border-dashed border-2"
-                >
-                  <PlusCircle className="h-6 w-6 text-muted-foreground" />
-                  <span className="mt-2 text-sm text-muted-foreground">
-                    Adicionar
-                  </span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Adicionar Categoria</DialogTitle>
-                </DialogHeader>
-                <div className="flex flex-col gap-2 py-4">
-                  {availableCategories.length > 0 ? (
-                    availableCategories.map((cat) => (
-                      <Button
-                        key={cat.id}
-                        variant="ghost"
-                        className="justify-start gap-2"
-                        onClick={() => handleAddCategory(cat)}
-                      >
-                        {cat.icon}
-                        {cat.name}
-                      </Button>
-                    ))
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center">
-                      Todas as categorias já foram adicionadas.
-                    </p>
-                  )}
-                </div>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      onClick={() => setIsDialogOpen(false)}
-                    >
-                      Fechar
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </CardContent>
-        </SortableContext>
-        <CardDescription className="mt-4 text-center">
-          Arraste e solte para organizar suas categorias favoritas.
-        </CardDescription>
-      </Card>
-    </section>
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={cn(
+        "flex items-center justify-between w-50 gap-1 cursor-grab",
+        isDragging || sortableDragging ? "opacity-60 bg-muted" : ""
+      )}
+      style={{
+        zIndex: isDragging || sortableDragging ? 50 : undefined,
+        transform: transform
+          ? `translate3d(${transform.x}px, ${transform.y}px, 0)`
+          : undefined,
+        transition,
+      }}
+    >
+      <Button
+        id={sport.key}
+        variant="ghost"
+        className={cn(
+          "w-50 flex-1 justify-start gap-2 h-8 text-sm",
+          selectedSport === sport.key && "bg-primary/10 text-primary"
+        )}
+        onClick={() => onSportSelect(sport.key)}
+      >
+        <span className="truncate">{sport.title}</span>
+      </Button>
+      <button
+        type="button"
+        className="ml-1"
+        tabIndex={0}
+        aria-label={"Remover dos favoritos"}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onToggleFavorite(sport.key);
+        }}
+      >
+        <StarIcon
+          className="h-4 w-4 cursor-pointer text-yellow-400"
+          fill="currentColor"
+        />
+      </button>
+    </div>
   );
 }
