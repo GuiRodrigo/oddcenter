@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton"; // Importar o componente Skeleton do shadcn/ui
+import { FavoriteCategories } from "@/components/dnd/FavoriteCategories";
 
 // Componente Skeleton para a página Home usando shadcn/ui Skeleton
 function HomePageSkeleton() {
@@ -118,11 +119,6 @@ export default function HomePage() {
     { name: "Fórmula 1", icon: <Trophy className="h-5 w-5" /> },
   ];
 
-  const favoriteCategories = [
-    { name: "Futebol", icon: <Trophy className="h-5 w-5" /> },
-    { name: "Basquete", icon: <Trophy className="h-5 w-5" /> },
-  ];
-
   const games = [
     {
       id: 1,
@@ -175,39 +171,7 @@ export default function HomePage() {
           </section>
 
           {/* Categorias Favoritas (Drag & Drop Placeholder) */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Star className="h-5 w-5 text-yellow-500" />
-              Minhas Categorias Favoritas
-            </h2>
-            <Card className="bg-card p-4">
-              <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-0">
-                {favoriteCategories.map((category, index) => (
-                  <div
-                    key={index}
-                    className="flex flex-col items-center justify-center p-4 border rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-grab"
-                  >
-                    {category.icon}
-                    <span className="mt-2 text-sm font-medium">
-                      {category.name}
-                    </span>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  className="flex flex-col items-center justify-center p-4 h-auto min-h-[100px] border-dashed border-2"
-                >
-                  <PlusCircle className="h-6 w-6 text-muted-foreground" />
-                  <span className="mt-2 text-sm text-muted-foreground">
-                    Adicionar
-                  </span>
-                </Button>
-              </CardContent>
-              <CardDescription className="mt-4 text-center">
-                Arraste e solte para organizar suas categorias favoritas.
-              </CardDescription>
-            </Card>
-          </section>
+          <FavoriteCategories />
 
           {/* Todas as Categorias */}
           <section>
