@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Header } from "@/components/layout/header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +61,7 @@ function HomePageSkeleton() {
 
 export default function HomePage() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
 
@@ -170,8 +172,7 @@ export default function HomePage() {
   };
 
   const handleViewGameDetails = (gameId: number) => {
-    console.log("Ver detalhes do jogo:", gameId);
-    // Aqui você implementaria a navegação para a página de detalhes
+    router.push(`/game/${gameId}`);
   };
 
   if (status === "loading") {
