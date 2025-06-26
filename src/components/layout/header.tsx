@@ -1,5 +1,7 @@
 "use client";
 
+import type React from "react";
+
 import { signOut, useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -14,18 +16,26 @@ import {
 import { TrendingUp } from "lucide-react";
 import Link from "next/link";
 
-export function Header() {
+type HeaderProps = {
+  children?: React.ReactNode;
+};
+
+export function Header({ children }: HeaderProps) {
   const { data: session } = useSession();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
       <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        <Link href="/" className="flex items-center space-x-2">
-          <div className="bg-primary rounded-lg p-1">
-            <TrendingUp className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <span className="font-bold text-lg">OddCenter</span>
-        </Link>
+        <div className="flex items-center gap-4">
+          {children}
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="bg-primary rounded-lg p-1">
+              <TrendingUp className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <span className="font-bold text-lg">OddCenter</span>
+          </Link>
+        </div>
+
         <nav className="flex items-center space-x-4">
           {session?.user ? (
             <DropdownMenu>
