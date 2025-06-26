@@ -2,26 +2,14 @@
 
 import { useSession } from "next-auth/react";
 import { Header } from "@/components/layout/header";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardTitle,
-} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Search,
-  Star,
-  PlusCircle,
-  ChevronRight,
-  Trophy,
-  Clock,
-  TrendingUp,
-} from "lucide-react";
+import { Search, Trophy, Clock, TrendingUp } from "lucide-react";
 import { useState } from "react";
-import { Skeleton } from "@/components/ui/skeleton"; // Importar o componente Skeleton do shadcn/ui
+import { Skeleton } from "@/components/ui/skeleton";
 import { FavoriteCategories } from "@/components/dnd/FavoriteCategories";
+import { GamesSection } from "@/components/games/GamesSection";
+import type { Game } from "@/components/games/GameCard";
 import {
   DndContext,
   closestCenter,
@@ -42,16 +30,14 @@ function HomePageSkeleton() {
       <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <div className="flex items-center space-x-2">
-            <Skeleton className="h-8 w-8 rounded-lg" /> {/* Logo placeholder */}
-            <Skeleton className="h-6 w-24 rounded" /> {/* Título placeholder */}
+            <Skeleton className="h-8 w-8 rounded-lg" />
+            <Skeleton className="h-6 w-24 rounded" />
           </div>
-          <Skeleton className="h-8 w-8 rounded-full" />{" "}
-          {/* Avatar placeholder */}
+          <Skeleton className="h-8 w-8 rounded-full" />
         </div>
       </header>
       <main className="flex-1 container py-8 px-4 md:px-6">
         <div className="space-y-8">
-          {/* Boas-vindas e Busca Skeleton */}
           <section className="text-center space-y-2">
             <Skeleton className="h-8 w-64 mx-auto rounded" />
             <Skeleton className="h-5 w-80 mx-auto rounded" />
@@ -60,54 +46,11 @@ function HomePageSkeleton() {
               <Skeleton className="h-10 w-10 rounded-md" />
             </div>
           </section>
-
-          {/* Categorias Favoritas Skeleton */}
           <section>
             <Skeleton className="h-6 w-48 rounded mb-4" />
-            <Card className="bg-card p-4">
-              <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-0">
-                {[...Array(5)].map((_, i) => (
-                  <Skeleton
-                    key={i}
-                    className="flex flex-col items-center justify-center p-4 border rounded-lg h-[100px]"
-                  />
-                ))}
-              </CardContent>
-            </Card>
-          </section>
-
-          {/* Todas as Categorias Skeleton */}
-          <section>
-            <Skeleton className="h-6 w-40 rounded mb-4" />
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className="flex flex-col items-center justify-center p-4 h-[100px]"
-                />
-              ))}
-            </div>
-          </section>
-
-          {/* Jogos Recentes e Futuros Skeleton */}
-          <section>
-            <Skeleton className="h-6 w-56 rounded mb-4" />
-            <div className="grid gap-4">
-              {[...Array(3)].map((_, i) => (
-                <Skeleton
-                  key={i}
-                  className="flex items-center justify-between p-4 h-[80px]"
-                />
-              ))}
-            </div>
-          </section>
-
-          {/* Melhores Odds Skeleton */}
-          <section>
-            <Skeleton className="h-6 w-36 rounded mb-4" />
-            <div className="grid gap-4">
-              <Skeleton className="flex items-center justify-between p-4 h-[80px]" />
-            </div>
+            {[...Array(3)].map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full rounded-lg mb-4" />
+            ))}
           </section>
         </div>
       </main>
@@ -119,6 +62,7 @@ export default function HomePage() {
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [isDragging, setIsDragging] = useState(false);
+
   const [allCategories] = useState([
     { id: "1", name: "Futebol", icon: <Trophy className="h-5 w-5" /> },
     { id: "2", name: "Basquete", icon: <Trophy className="h-5 w-5" /> },
@@ -126,9 +70,76 @@ export default function HomePage() {
     { id: "4", name: "eSports", icon: <Trophy className="h-5 w-5" /> },
     { id: "5", name: "Fórmula 1", icon: <Trophy className="h-5 w-5" /> },
   ]);
+
   const [favoriteCategories, setFavoriteCategories] = useState(() => [
     allCategories[0],
     allCategories[1],
+  ]);
+
+  // Dados mais realistas dos jogos
+  const [games] = useState<Game[]>([
+    {
+      id: 1,
+      category: "Futebol",
+      teams: "Real Madrid vs Barcelona",
+      time: "20:00",
+      date: "2024-01-15",
+      odds: { home: 2.1, draw: 3.4, away: 3.2 },
+      status: "upcoming",
+      league: "La Liga",
+      bestOdd: true,
+    },
+    {
+      id: 2,
+      category: "Basquete",
+      teams: "Lakers vs Celtics",
+      time: "22:00",
+      date: "2024-01-15",
+      odds: { home: 1.85, away: 1.95 },
+      status: "live",
+      league: "NBA",
+    },
+    {
+      id: 3,
+      category: "Tênis",
+      teams: "Djokovic vs Nadal",
+      time: "14:00",
+      date: "2024-01-16",
+      odds: { home: 1.9, away: 1.9 },
+      status: "upcoming",
+      league: "ATP Masters",
+    },
+    {
+      id: 4,
+      category: "Futebol",
+      teams: "Manchester City vs Liverpool",
+      time: "17:30",
+      date: "2024-01-16",
+      odds: { home: 2.25, draw: 3.1, away: 3.4 },
+      status: "upcoming",
+      league: "Premier League",
+      bestOdd: true,
+    },
+    {
+      id: 5,
+      category: "eSports",
+      teams: "Team Liquid vs FaZe Clan",
+      time: "19:00",
+      date: "2024-01-15",
+      odds: { home: 1.75, away: 2.05 },
+      status: "live",
+      league: "CS2 Major",
+    },
+    {
+      id: 6,
+      category: "Basquete",
+      teams: "Warriors vs Nets",
+      time: "21:30",
+      date: "2024-01-16",
+      odds: { home: 1.65, away: 2.2 },
+      status: "upcoming",
+      league: "NBA",
+    },
   ]);
 
   const sensors = useSensors(
@@ -158,33 +169,19 @@ export default function HomePage() {
     setIsDragging(false);
   };
 
+  const handleViewGameDetails = (gameId: number) => {
+    console.log("Ver detalhes do jogo:", gameId);
+    // Aqui você implementaria a navegação para a página de detalhes
+  };
+
   if (status === "loading") {
-    return <HomePageSkeleton />; // Exibe o skeleton durante o carregamento
+    return <HomePageSkeleton />;
   }
 
-  const games = [
-    {
-      id: 1,
-      category: "Futebol",
-      teams: "Real Madrid vs Barcelona",
-      time: "Hoje, 20:00",
-      odds: "1.80 / 3.50 / 4.20",
-    },
-    {
-      id: 2,
-      category: "Basquete",
-      teams: "Lakers vs Celtics",
-      time: "Amanhã, 22:00",
-      odds: "1.50 / 2.80",
-    },
-    {
-      id: 3,
-      category: "Tênis",
-      teams: "Djokovic vs Nadal",
-      time: "Amanhã, 14:00",
-      odds: "1.90 / 1.90",
-    },
-  ];
+  // Separar jogos por categoria
+  const liveGames = games.filter((game) => game.status === "live");
+  const upcomingGames = games.filter((game) => game.status === "upcoming");
+  const bestOddsGames = games.filter((game) => game.bestOdd).slice(0, 3);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -219,7 +216,6 @@ export default function HomePage() {
             onDragStart={handleDragStart}
             onDragEnd={handleDragEnd}
           >
-            {/* Categorias Favoritas (Drag & Drop Placeholder) */}
             <FavoriteCategories
               allCategories={allCategories}
               favoriteCategories={favoriteCategories}
@@ -228,91 +224,36 @@ export default function HomePage() {
             <DroppableRemoveArea isDragging={isDragging} />
           </DndContext>
 
-          {/* Todas as Categorias */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              Todas as Categorias
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {allCategories.map((category, index) => (
-                <Card
-                  key={index}
-                  className="flex flex-col items-center justify-center p-4 hover:bg-muted/50 transition-colors cursor-pointer"
-                >
-                  <CardContent className="p-0 flex flex-col items-center">
-                    {category.icon}
-                    <span className="mt-2 text-sm font-medium">
-                      {category.name}
-                    </span>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </section>
-
-          {/* Jogos Recentes e Futuros */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Jogos Recentes e Futuros
-            </h2>
-            <div className="grid gap-4">
-              {games.map((game) => (
-                <Card
-                  key={game.id}
-                  className="flex items-center justify-between p-4"
-                >
-                  <div className="flex flex-col">
-                    <CardTitle className="text-lg">{game.teams}</CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground">
-                      {game.category} - {game.time}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-semibold text-primary">
-                      {game.odds}
-                    </span>
-                    <Button variant="ghost" size="icon">
-                      <ChevronRight className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
-
           {/* Melhores Odds */}
-          <section>
-            <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-              <TrendingUp className="h-5 w-5" />
-              Melhores Odds
-            </h2>
-            <div className="grid gap-4">
-              {/* Placeholder para melhores odds, similar aos jogos */}
-              {games.slice(0, 1).map((game) => (
-                <Card
-                  key={`best-odd-${game.id}`}
-                  className="flex items-center justify-between p-4 bg-primary/10 border-primary"
-                >
-                  <div className="flex flex-col">
-                    <CardTitle className="text-lg">{game.teams}</CardTitle>
-                    <CardDescription className="text-sm text-muted-foreground">
-                      {game.category} - {game.time}
-                    </CardDescription>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <span className="font-bold text-primary text-lg">
-                      {game.odds}
-                    </span>
-                    <Button variant="default" size="sm">
-                      Ver Detalhes
-                    </Button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </section>
+          <GamesSection
+            games={bestOddsGames}
+            title="Melhores Odds"
+            icon={<TrendingUp className="h-5 w-5 text-green-500" />}
+            showFilters={false}
+            onViewDetails={handleViewGameDetails}
+          />
+
+          {/* Jogos Ao Vivo */}
+          {liveGames.length > 0 && (
+            <GamesSection
+              games={liveGames}
+              title="Jogos Ao Vivo"
+              icon={
+                <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse" />
+              }
+              showFilters={false}
+              onViewDetails={handleViewGameDetails}
+            />
+          )}
+
+          {/* Próximos Jogos */}
+          <GamesSection
+            games={upcomingGames}
+            title="Próximos Jogos"
+            icon={<Clock className="h-5 w-5" />}
+            showFilters={true}
+            onViewDetails={handleViewGameDetails}
+          />
         </div>
       </main>
     </div>
