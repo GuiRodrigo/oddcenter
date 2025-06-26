@@ -22,6 +22,18 @@ import {
 import { useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton"; // Importar o componente Skeleton do shadcn/ui
 import { FavoriteCategories } from "@/components/dnd/FavoriteCategories";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { arrayMove } from "@dnd-kit/sortable";
+import { DroppableRemoveArea } from "@/components/dnd/DroppableRemoveArea";
 
 // Componente Skeleton para a página Home usando shadcn/ui Skeleton
 function HomePageSkeleton() {
@@ -106,18 +118,49 @@ function HomePageSkeleton() {
 export default function HomePage() {
   const { data: session, status } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
+  const [allCategories] = useState([
+    { id: "1", name: "Futebol", icon: <Trophy className="h-5 w-5" /> },
+    { id: "2", name: "Basquete", icon: <Trophy className="h-5 w-5" /> },
+    { id: "3", name: "Tênis", icon: <Trophy className="h-5 w-5" /> },
+    { id: "4", name: "eSports", icon: <Trophy className="h-5 w-5" /> },
+    { id: "5", name: "Fórmula 1", icon: <Trophy className="h-5 w-5" /> },
+  ]);
+  const [favoriteCategories, setFavoriteCategories] = useState(() => [
+    allCategories[0],
+    allCategories[1],
+  ]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor)
+  );
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setIsDragging(true);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over?.id === "remove-area") {
+      setFavoriteCategories((items) =>
+        items.filter((item) => item.id !== active.id)
+      );
+    } else if (over && active.id !== over.id) {
+      setFavoriteCategories((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+        if (oldIndex === -1 || newIndex === -1) return items;
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+    setIsDragging(false);
+  };
 
   if (status === "loading") {
     return <HomePageSkeleton />; // Exibe o skeleton durante o carregamento
   }
-
-  const categories = [
-    { name: "Futebol", icon: <Trophy className="h-5 w-5" /> },
-    { name: "Basquete", icon: <Trophy className="h-5 w-5" /> },
-    { name: "Tênis", icon: <Trophy className="h-5 w-5" /> },
-    { name: "eSports", icon: <Trophy className="h-5 w-5" /> },
-    { name: "Fórmula 1", icon: <Trophy className="h-5 w-5" /> },
-  ];
 
   const games = [
     {
@@ -170,8 +213,20 @@ export default function HomePage() {
             </div>
           </section>
 
-          {/* Categorias Favoritas (Drag & Drop Placeholder) */}
-          <FavoriteCategories />
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+          >
+            {/* Categorias Favoritas (Drag & Drop Placeholder) */}
+            <FavoriteCategories
+              allCategories={allCategories}
+              favoriteCategories={favoriteCategories}
+              setFavoriteCategories={setFavoriteCategories}
+            />
+            <DroppableRemoveArea isDragging={isDragging} />
+          </DndContext>
 
           {/* Todas as Categorias */}
           <section>
@@ -180,7 +235,7 @@ export default function HomePage() {
               Todas as Categorias
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-              {categories.map((category, index) => (
+              {allCategories.map((category, index) => (
                 <Card
                   key={index}
                   className="flex flex-col items-center justify-center p-4 hover:bg-muted/50 transition-colors cursor-pointer"

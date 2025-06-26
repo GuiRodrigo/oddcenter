@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, type ComponentProps } from "react";
+import {
+  useState,
+  type ComponentProps,
+  type Dispatch,
+  type SetStateAction,
+  type ReactElement,
+} from "react";
 import {
   DndContext,
   closestCenter,
@@ -20,7 +26,22 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Card, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Star, PlusCircle, Trophy } from "lucide-react";
+import { Star, PlusCircle, Trophy, MinusCircle } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+
+type Category = {
+  id: string;
+  name: string;
+  icon: ReactElement;
+};
 
 // Componente para um item arrastável
 function SortableItem({
@@ -45,28 +66,29 @@ function SortableItem({
   );
 }
 
-export function FavoriteCategories() {
-  const [favoriteCategories, setFavoriteCategories] = useState([
-    { id: "1", name: "Futebol", icon: <Trophy className="h-5 w-5" /> },
-    { id: "2", name: "Basquete", icon: <Trophy className="h-5 w-5" /> },
-  ]);
+type FavoriteCategoriesProps = {
+  allCategories: Category[];
+  favoriteCategories: Category[];
+  setFavoriteCategories: Dispatch<SetStateAction<Category[]>>;
+};
 
-  const sensors = useSensors(
-    useSensor(PointerSensor),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
+export function FavoriteCategories({
+  allCategories,
+  favoriteCategories,
+  setFavoriteCategories,
+}: FavoriteCategoriesProps) {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  const availableCategories = allCategories.filter(
+    (c) => !favoriteCategories.some((fav) => fav.id === c.id)
   );
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      setFavoriteCategories((items) => {
-        const oldIndex = items.findIndex((item) => item.id === active.id);
-        const newIndex = items.findIndex((item) => item.id === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
+  const handleAddCategory = (category: Category) => {
+    setFavoriteCategories((prev) => [...prev, category]);
+  };
+
+  const handleRemoveCategory = (categoryId: string) => {
+    setFavoriteCategories((prev) => prev.filter((c) => c.id !== categoryId));
   };
 
   return (
@@ -76,38 +98,79 @@ export function FavoriteCategories() {
         Minhas Categorias Favoritas
       </h2>
       <Card className="bg-card p-4">
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
+        <SortableContext
+          items={favoriteCategories}
+          strategy={rectSortingStrategy}
         >
-          <SortableContext
-            items={favoriteCategories}
-            strategy={rectSortingStrategy}
-          >
-            <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-0">
-              {favoriteCategories.map((category) => (
-                <SortableItem key={category.id} id={category.id}>
-                  <div className="flex flex-col items-center justify-center p-4 border rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-grab">
-                    {category.icon}
-                    <span className="mt-2 text-sm font-medium">
-                      {category.name}
-                    </span>
-                  </div>
-                </SortableItem>
-              ))}
-              <Button
-                variant="outline"
-                className="flex flex-col items-center justify-center p-4 h-auto min-h-[100px] border-dashed border-2"
-              >
-                <PlusCircle className="h-6 w-6 text-muted-foreground" />
-                <span className="mt-2 text-sm text-muted-foreground">
-                  Adicionar
-                </span>
-              </Button>
-            </CardContent>
-          </SortableContext>
-        </DndContext>
+          <CardContent className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 p-0">
+            {favoriteCategories.map((category) => (
+              <SortableItem key={category.id} id={category.id}>
+                <div className="relative group flex flex-col items-center justify-center p-4 border rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-grab">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-1 right-1 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                    onClick={() => handleRemoveCategory(category.id)}
+                  >
+                    <MinusCircle className="h-5 w-5 text-destructive" />
+                  </Button>
+                  {category.icon}
+                  <span className="mt-2 text-sm font-medium">
+                    {category.name}
+                  </span>
+                </div>
+              </SortableItem>
+            ))}
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="flex flex-col items-center justify-center p-4 h-auto min-h-[100px] border-dashed border-2"
+                >
+                  <PlusCircle className="h-6 w-6 text-muted-foreground" />
+                  <span className="mt-2 text-sm text-muted-foreground">
+                    Adicionar
+                  </span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Adicionar Categoria</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col gap-2 py-4">
+                  {availableCategories.length > 0 ? (
+                    availableCategories.map((cat) => (
+                      <Button
+                        key={cat.id}
+                        variant="ghost"
+                        className="justify-start gap-2"
+                        onClick={() => handleAddCategory(cat)}
+                      >
+                        {cat.icon}
+                        {cat.name}
+                      </Button>
+                    ))
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Todas as categorias já foram adicionadas.
+                    </p>
+                  )}
+                </div>
+                <DialogFooter>
+                  <DialogClose asChild>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Fechar
+                    </Button>
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </CardContent>
+        </SortableContext>
         <CardDescription className="mt-4 text-center">
           Arraste e solte para organizar suas categorias favoritas.
         </CardDescription>
