@@ -7,18 +7,14 @@ import { Header } from "./header";
 import { Sidebar } from "./sidebar";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
+import { useSport } from "@/components/providers/SportProvider";
 
 type MainLayoutProps = {
   children: React.ReactNode;
-  selectedSport: string;
-  setSelectedSport: React.Dispatch<React.SetStateAction<string>>;
 };
 
-export function MainLayout({
-  children,
-  selectedSport,
-  setSelectedSport,
-}: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps) {
+  const { selectedSport, setSelectedSport } = useSport();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleSportSelect = (sportKey: string) => {

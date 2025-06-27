@@ -9,18 +9,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
-import { useState } from "react";
 
 function GameDetailSkeleton() {
-  const [selectedSport, setSelectedSport] = useState<string>(
-    "soccer_brazil_campeonato"
-  );
-
   return (
-    <MainLayout
-      selectedSport={selectedSport}
-      setSelectedSport={setSelectedSport}
-    >
+    <MainLayout>
       <div className="container py-8 px-4 md:px-6">
         <div className="space-y-6">
           <Skeleton className="h-10 w-32" />
@@ -40,9 +32,6 @@ export default function GameDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { data: session, status } = useSession();
-  const [selectedSport, setSelectedSport] = useState<string>(
-    "soccer_brazil_campeonato"
-  );
 
   const { game, loading, error } = useGameDetails(params.id as string);
 
@@ -61,10 +50,7 @@ export default function GameDetailPage() {
 
   if (error || !game) {
     return (
-      <MainLayout
-        selectedSport={selectedSport}
-        setSelectedSport={setSelectedSport}
-      >
+      <MainLayout>
         <div className="container py-8 px-4 md:px-6">
           <Card>
             <CardContent className="p-8 text-center space-y-4">
@@ -88,10 +74,7 @@ export default function GameDetailPage() {
   }
 
   return (
-    <MainLayout
-      selectedSport={selectedSport}
-      setSelectedSport={setSelectedSport}
-    >
+    <MainLayout>
       <div className="container py-8 px-4 md:px-6">
         <GameDetailsView game={game} onBack={handleBack} />
       </div>

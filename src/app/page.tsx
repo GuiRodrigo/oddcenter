@@ -17,16 +17,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useSport } from "@/components/providers/SportProvider";
 
 function HomePageSkeleton() {
-  const [selectedSport, setSelectedSport] = useState<string>(
-    "soccer_brazil_campeonato"
-  );
   return (
-    <MainLayout
-      selectedSport={selectedSport}
-      setSelectedSport={setSelectedSport}
-    >
+    <MainLayout>
       <div className="container py-8 px-4 md:px-6">
         <div className="space-y-6">
           <div className="text-center space-y-2">
@@ -81,9 +76,7 @@ function SearchBar({
 
 export default function HomePage() {
   const { data: session, status } = useSession();
-  const [selectedSport, setSelectedSport] = useState<string>(
-    "soccer_brazil_campeonato"
-  );
+  const { selectedSport } = useSport();
   const [appliedSearch, setAppliedSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [activeTab, setActiveTab] = useState<"odds" | "scores">("odds");
@@ -93,10 +86,7 @@ export default function HomePage() {
   }
 
   return (
-    <MainLayout
-      selectedSport={selectedSport}
-      setSelectedSport={setSelectedSport}
-    >
+    <MainLayout>
       <div className="container py-8 px-4 md:px-6">
         <div className="space-y-6">
           {/* Boas-vindas */}
