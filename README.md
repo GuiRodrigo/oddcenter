@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# OddCenter
 
-## Getting Started
+Plataforma moderna para visualização de odds esportivas em tempo real.
 
-First, run the development server:
+## Sobre o projeto
+
+O **OddCenter** é uma plataforma web que permite ao usuário explorar, comparar e acompanhar odds de apostas esportivas de diversos esportes e campeonatos, com uma interface intuitiva, responsiva e visualmente moderna.
+
+### Funcionalidades principais
+
+- Visualização de odds e jogos em tempo real
+- Busca e filtro por times/campeonatos
+- Favoritos e organização de categorias (drag & drop)
+- Página de detalhes de cada jogo
+- Autenticação via GitHub (NextAuth)
+- Interface escura com identidade visual roxa
+- Skeleton loading animado
+- SEO otimizado (Open Graph, Twitter Card, favicon)
+
+## Tecnologias utilizadas
+
+- **Next.js 15** (App Router)
+- **TypeScript**
+- **TailwindCSS**
+- **framer-motion** (animações)
+- **NextAuth.js** (autenticação)
+- **Lodash** (manipulação de listas)
+- **Dnd-kit** (drag & drop)
+- **Vercel** (deploy)
+
+## Como rodar localmente
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Acesse [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deploy
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+O deploy está disponível em: [https://oddcenter.vercel.app/](https://oddcenter.vercel.app/)
 
-## Learn More
+O deploy é feito na [Vercel](https://vercel.com/). Basta conectar o repositório e configurar as variáveis de ambiente necessárias (ex: chaves da Odds API, NextAuth, etc).
 
-To learn more about Next.js, take a look at the following resources:
+## Licença
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+MIT
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Desenvolvido por Guilherme para o desafio da ANA Gaming.
