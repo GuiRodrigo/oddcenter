@@ -18,11 +18,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useSport } from "@/components/providers/SportProvider";
+import { motion } from "framer-motion";
 
 function HomePageSkeleton() {
   return (
     <MainLayout>
-      <div className="container py-8 px-4 md:px-6">
+      <motion.div
+        className="container py-8 px-4 md:px-6"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="space-y-6">
           <div className="text-center space-y-2">
             <Skeleton className="h-8 w-64 mx-auto" />
@@ -34,7 +40,7 @@ function HomePageSkeleton() {
             ))}
           </div>
         </div>
-      </div>
+      </motion.div>
     </MainLayout>
   );
 }
@@ -87,7 +93,12 @@ export default function HomePage() {
 
   return (
     <MainLayout>
-      <div className="container py-8 px-4 md:px-6">
+      <motion.div
+        className="container py-8 px-4 md:px-6"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="space-y-6">
           {/* Boas-vindas */}
           <div className="text-center space-y-2">
@@ -174,7 +185,7 @@ export default function HomePage() {
             </TabsContent>
           </Tabs>
         </div>
-      </div>
+      </motion.div>
     </MainLayout>
   );
 }

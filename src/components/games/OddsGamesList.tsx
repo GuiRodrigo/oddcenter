@@ -10,6 +10,7 @@ import type { OddsEvent, OddsBookmaker } from "@/types/game";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { translateOutcome, translateBookmaker } from "@/lib/utils";
+import { motion } from "framer-motion";
 
 type OddsGamesListProps = {
   sportKey: string;
@@ -274,7 +275,7 @@ export function OddsGamesList({
       </div>
 
       <div className="grid gap-4">
-        {sortedGames.map((game) => {
+        {sortedGames.map((game, i) => {
           const { date, time } = formatGameTime(game.commence_time);
           const oddsData = getBookmakersOdds(game);
 
@@ -283,107 +284,116 @@ export function OddsGamesList({
           const bestOddsComparison = getBestOddsComparison(oddsData.bookmakers);
 
           return (
-            <Card
+            <motion.div
               key={game.id}
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => router.push(`/game/${game.id}`)}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.3, delay: i * 0.05 }}
             >
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between mb-3 flex-wrap gap-1">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-xs truncate">
-                      {game.sport_title}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {oddsData.marketName}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-4 w-4" />
-                      {date}
+              <Card
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => router.push(`/game/${game.id}`)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between mb-3 flex-wrap gap-1">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-xs truncate">
+                        {game.sport_title}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {oddsData.marketName}
+                      </Badge>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {time}
-                    </div>
-                  </div>
-                </div>
-
-                <CardTitle className="text-lg mb-4">
-                  {game.home_team} vs {game.away_team}
-                </CardTitle>
-
-                {/* Melhores Odds */}
-                <div className="mb-4">
-                  <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                    <TrendingUp className="h-3 w-3" />
-                    Melhores Odds
-                  </h4>
-                  <div className="flex gap-3">
-                    {bestOddsComparison.map((comparison, index) => (
-                      <div key={index} className="text-center">
-                        <p className="text-xs text-muted-foreground mb-1">
-                          {translateOutcome(comparison.outcome)}
-                        </p>
-                        <Badge variant="default" className="font-mono text-sm">
-                          {comparison.bestPrice.toFixed(2)}
-                        </Badge>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {comparison.bestBookmaker}
-                        </p>
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-4 w-4" />
+                        {date}
                       </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Comparação entre Casas de Apostas */}
-                {oddsData.bookmakers.length > 1 ? (
-                  <div className="border-t pt-3">
-                    <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                      Comparação de Casas de Apostas
-                    </h4>
-                    <div className="space-y-2">
-                      {oddsData.bookmakers.map(
-                        (bookmaker: BookmakerOdds, index: number) => (
-                          <div
-                            key={index}
-                            className="flex items-center justify-between text-sm"
-                          >
-                            <span className="font-medium text-xs">
-                              {translateBookmaker(bookmaker.bookmaker)}
-                            </span>
-                            <div className="flex gap-2">
-                              {bookmaker.outcomes.map(
-                                (
-                                  outcome: BookmakerOutcome,
-                                  outcomeIndex: number
-                                ) => (
-                                  <div
-                                    key={outcomeIndex}
-                                    className="text-center"
-                                  >
-                                    <div className="text-xs text-muted-foreground mb-1">
-                                      {translateOutcome(outcome.displayName)}
-                                    </div>
-                                    <Badge
-                                      variant="outline"
-                                      className="font-mono text-xs"
-                                    >
-                                      {outcome.price.toFixed(2)}
-                                    </Badge>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        )
-                      )}
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-4 w-4" />
+                        {time}
+                      </div>
                     </div>
                   </div>
-                ) : null}
-              </CardContent>
-            </Card>
+
+                  <CardTitle className="text-lg mb-4">
+                    {game.home_team} vs {game.away_team}
+                  </CardTitle>
+
+                  {/* Melhores Odds */}
+                  <div className="mb-4">
+                    <h4 className="text-sm font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                      <TrendingUp className="h-3 w-3" />
+                      Melhores Odds
+                    </h4>
+                    <div className="flex gap-3">
+                      {bestOddsComparison.map((comparison, index) => (
+                        <div key={index} className="text-center">
+                          <p className="text-xs text-muted-foreground mb-1">
+                            {translateOutcome(comparison.outcome)}
+                          </p>
+                          <Badge
+                            variant="default"
+                            className="font-mono text-sm"
+                          >
+                            {comparison.bestPrice.toFixed(2)}
+                          </Badge>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {comparison.bestBookmaker}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Comparação entre Casas de Apostas */}
+                  {oddsData.bookmakers.length > 1 ? (
+                    <div className="border-t pt-3">
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">
+                        Comparação de Casas de Apostas
+                      </h4>
+                      <div className="space-y-2">
+                        {oddsData.bookmakers.map(
+                          (bookmaker: BookmakerOdds, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between text-sm"
+                            >
+                              <span className="font-medium text-xs">
+                                {translateBookmaker(bookmaker.bookmaker)}
+                              </span>
+                              <div className="flex gap-2">
+                                {bookmaker.outcomes.map(
+                                  (
+                                    outcome: BookmakerOutcome,
+                                    outcomeIndex: number
+                                  ) => (
+                                    <div
+                                      key={outcomeIndex}
+                                      className="text-center"
+                                    >
+                                      <div className="text-xs text-muted-foreground mb-1">
+                                        {translateOutcome(outcome.displayName)}
+                                      </div>
+                                      <Badge
+                                        variant="outline"
+                                        className="font-mono text-xs"
+                                      >
+                                        {outcome.price.toFixed(2)}
+                                      </Badge>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+                </CardContent>
+              </Card>
+            </motion.div>
           );
         })}
       </div>
