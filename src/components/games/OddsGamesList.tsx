@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { useRouter } from "next/navigation";
 import { translateOutcome, translateBookmaker } from "@/lib/utils";
 import { motion } from "framer-motion";
+import orderBy from "lodash/orderBy";
 
 type OddsGamesListProps = {
   sportKey: string;
@@ -227,12 +228,11 @@ export function OddsGamesList({
     : games;
 
   // Ordenar jogos apenas por data
-  const sortedGames = [...filteredGames];
-  sortedGames.sort((a, b) => {
-    const aDate = new Date(a.commence_time).getTime();
-    const bDate = new Date(b.commence_time).getTime();
-    return sortOrder === "asc" ? aDate - bDate : bDate - aDate;
-  });
+  const sortedGames = orderBy(
+    filteredGames,
+    (game) => new Date(game.commence_time).getTime(),
+    [sortOrder]
+  );
 
   if (loading) {
     return (
