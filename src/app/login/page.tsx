@@ -134,7 +134,7 @@ export default function LoginPage() {
               <Button
                 onClick={handleSkipSignIn}
                 disabled={isLoading}
-                className="w-full h-12 text-base text-muted-foreground font-medium bg-secondary"
+                className="w-full h-12 text-base text-muted font-medium bg-secondary"
                 size="lg"
               >
                 Continuar como visitante
