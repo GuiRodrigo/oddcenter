@@ -55,7 +55,7 @@ export function Header({ children }: HeaderProps) {
                 <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    className="hidden md:inline-flex"
+                    className="inline-flex"
                     onClick={() => setOpen(true)}
                   >
                     Sair
