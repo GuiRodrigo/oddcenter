@@ -51,8 +51,6 @@ export async function GET(req: NextRequest) {
         return requestedMarkets;
     };
 
-    console.log("ODDS_API_KEY:", process.env.ODDS_API_KEY ? "set" : "not set");
-
     if (type === "odds" && sportKey) {
         endpoint = "odds";
         const appropriateMarkets = getAppropriateMarkets(sportKey, markets);
