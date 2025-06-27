@@ -73,7 +73,9 @@ export function MainLayout({ children }: MainLayoutProps) {
           </Button>
         </Header>
 
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="flex-1 overflow-auto flex flex-col items-center justify-start">
+          {children}
+        </main>
       </div>
     </div>
   );

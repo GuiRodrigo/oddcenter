@@ -36,7 +36,7 @@ export default function GameDetailPage() {
   const { game, loading, error } = useGameDetails(params.id as string);
 
   const handleBack = () => {
-    router.back();
+    router.push("/");
   };
 
   if (status === "loading" || loading) {
