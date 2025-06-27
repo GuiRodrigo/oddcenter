@@ -9,6 +9,15 @@ import { Calendar, Clock, Users, ArrowLeft, Share2 } from "lucide-react";
 import type { OddsEvent } from "@/types/game";
 import { format } from "date-fns";
 import { translateBookmaker } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { useState } from "react";
 
 interface GameDetailsViewProps {
   game: OddsEvent;
@@ -49,6 +58,18 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
 
   const { date, time, relative } = formatGameDateTime(gameDate);
 
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+
+  const handleCopy = async () => {
+    if (navigator.clipboard && shareUrl) {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -58,12 +79,44 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
           Voltar
         </Button>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShareOpen(true)}
+          >
             <Share2 className="h-4 w-4 mr-2" />
             Compartilhar
           </Button>
         </div>
       </div>
+
+      {/* Dialog de Compartilhamento */}
+      <Dialog open={shareOpen} onOpenChange={setShareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Compartilhar este jogo</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <input
+              type="text"
+              value={shareUrl}
+              readOnly
+              className="w-full px-3 py-2 border rounded bg-muted text-sm"
+              onFocus={(e) => e.target.select()}
+            />
+            <Button onClick={handleCopy} className="w-full">
+              {copied ? "Link copiado!" : "Copiar link"}
+            </Button>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline" className="w-full mt-2">
+                Fechar
+              </Button>
+            </DialogClose>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Informações do Jogo */}
       <Card>
