@@ -191,7 +191,7 @@ export function Sidebar({
   return (
     <div className={cn("w-64 border-r bg-background", className)}>
       <ScrollArea className="h-full">
-        <div className="pr-4 pl-2 py-4 space-y-6">
+        <div className="pr-4 pl-2 pt-4 pb-56 space-y-6">
           {/* Seção Favoritos com Drag and Drop */}
           <FavoriteCategories
             activeDrag={activeDrag}

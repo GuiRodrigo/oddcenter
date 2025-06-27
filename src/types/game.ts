@@ -55,38 +55,63 @@ export type GameDetail = {
 
 // Tipos para dados de odds da Odds API
 export type OddsOutcome = {
-    name: string;      // Nome do time ou resultado (ex: "Botafogo", "Draw")
-    price: number;     // Odd para esse resultado
-};
+    name: string // Nome do time ou resultado (ex: "Botafogo", "Draw")
+    price: number // Odd para esse resultado
+}
 
 export type OddsMarket = {
-    key: string;               // Tipo do mercado (ex: "h2h")
-    last_update: string;       // Data/hora da última atualização
-    outcomes: OddsOutcome[];   // Lista de opções de aposta
-};
+    key: string // Tipo do mercado (ex: "h2h")
+    last_update: string // Data/hora da última atualização
+    outcomes: OddsOutcome[] // Lista de opções de aposta
+}
 
 export type OddsBookmaker = {
-    key: string;               // Identificador do bookmaker (ex: "fanduel")
-    title: string;             // Nome do bookmaker (ex: "FanDuel")
-    last_update: string;       // Data/hora da última atualização
-    markets: OddsMarket[];     // Mercados disponíveis nesse bookmaker
-};
+    key: string // Identificador do bookmaker (ex: "fanduel")
+    title: string // Nome do bookmaker (ex: "FanDuel")
+    last_update: string // Data/hora da última atualização
+    markets: OddsMarket[] // Mercados disponíveis nesse bookmaker
+}
 
 export type OddsEvent = {
-    id: string;                    // ID do evento
-    sport_key: string;             // Chave do esporte (ex: "soccer_brazil_campeonato")
-    sport_title: string;           // Nome do campeonato
-    commence_time: string;         // Data/hora do início do evento
-    home_team: string;             // Nome do time da casa
-    away_team: string;             // Nome do time visitante
-    bookmakers: OddsBookmaker[];   // Bookmakers e odds disponíveis
-};
+    id: string // ID do evento
+    sport_key: string // Chave do esporte (ex: "soccer_brazil_campeonato")
+    sport_title: string // Nome do campeonato
+    commence_time: string // Data/hora do início do evento
+    home_team: string // Nome do time da casa
+    away_team: string // Nome do time visitante
+    bookmakers: OddsBookmaker[] // Bookmakers e odds disponíveis
+}
 
 export type OddsSport = {
-    key: string;           // Identificador do esporte (ex: "americanfootball_cfl")
-    group: string;         // Grupo do esporte (ex: "American Football")
-    title: string;         // Nome do esporte/campeonato (ex: "CFL")
-    description: string;   // Descrição (ex: "Canadian Football League")
-    active: boolean;       // Se está ativo no momento
-    has_outrights: boolean;// Se possui mercados outrights (ex: campeão da temporada)
-};
+    key: string // Identificador do esporte (ex: "americanfootball_cfl")
+    group: string // Grupo do esporte (ex: "American Football")
+    title: string // Nome do esporte/campeonato (ex: "CFL")
+    description: string // Descrição (ex: "Canadian Football League")
+    active: boolean // Se está ativo no momento
+    has_outrights: boolean // Se possui mercados outrights (ex: campeão da temporada)
+}
+
+// Tipos para EventsList
+export type Event = {
+    id: string
+    sport_key: string
+    sport_title: string
+    commence_time: string
+    home_team: string
+    away_team: string
+    venue?: string
+    participants?: string[]
+}
+
+// Tipos para ScoresList
+export type ScoreEvent = {
+    id: string
+    sport_key: string
+    sport_title: string
+    commence_time: string
+    home_team: string
+    away_team: string
+    scores?: number[]
+    last_update?: string
+    completed?: boolean
+}

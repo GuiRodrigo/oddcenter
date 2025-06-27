@@ -3,7 +3,7 @@ import { withAuth } from "next-auth/middleware"
 export default withAuth(
     function middleware(req) {
         // Lógica adicional do middleware pode ser adicionada aqui
-        console.log("Middleware executado para:", req.nextUrl.pathname)
+        console.log("[Middleware] Executado para:", req.nextUrl.pathname)
     },
     {
         callbacks: {
@@ -11,6 +11,10 @@ export default withAuth(
                 // Retorna true se o usuário pode acessar a página
                 const { pathname } = req.nextUrl
 
+
+                if (pathname === "/api/oddsApi") {
+                    return true
+                }
                 // Permite acesso à página de login sempre
                 if (pathname === "/login") {
                     return true
@@ -21,7 +25,8 @@ export default withAuth(
                 }
 
                 // Para outras páginas, verifica se tem token (está logado)
-                return !!token
+                const isAuthorized = !!token;
+                return isAuthorized
             },
         },
     },
@@ -31,6 +36,6 @@ export default withAuth(
 export const config = {
     matcher: [
         // Protege todas as rotas exceto as listadas abaixo
-        "/((?!api/auth|_next/static|_next/image|favicon.ico|login).*)",
+        "/((?!api/auth|api/oddsApi*|_next/static|_next/image|favicon.ico|login).*)",
     ],
 }

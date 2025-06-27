@@ -8,6 +8,7 @@ import { MarketOddsTable } from "./MarketOddsTable";
 import { Calendar, Clock, Users, ArrowLeft, Share2 } from "lucide-react";
 import type { OddsEvent } from "@/types/game";
 import { format } from "date-fns";
+import { translateBookmaker } from "@/lib/utils";
 
 interface GameDetailsViewProps {
   game: OddsEvent;
@@ -93,7 +94,7 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
               <p className="text-2xl font-bold text-primary">
                 {totalBookmakers}
               </p>
-              <p className="text-sm text-muted-foreground">Bookmakers</p>
+              <p className="text-sm text-muted-foreground">Casas de Apostas</p>
             </div>
             <div>
               <p className="text-2xl font-bold text-primary">{totalMarkets}</p>
@@ -169,7 +170,7 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">
-                  Bookmakers Disponíveis
+                  Casas de Apostas Disponíveis
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -179,7 +180,9 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
                       key={index}
                       className="flex items-center justify-between p-2 border rounded"
                     >
-                      <span className="font-medium">{bookmaker.title}</span>
+                      <span className="font-medium">
+                        {translateBookmaker(bookmaker.title)}
+                      </span>
                       <Badge variant="secondary">
                         {bookmaker.markets.length} mercados
                       </Badge>
@@ -187,7 +190,7 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
                   ))}
                   {game.bookmakers.length > 5 && (
                     <p className="text-sm text-muted-foreground text-center">
-                      +{game.bookmakers.length - 5} bookmakers adicionais
+                      +{game.bookmakers.length - 5} casas de apostas adicionais
                     </p>
                   )}
                 </div>

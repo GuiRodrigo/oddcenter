@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp } from "lucide-react";
 import type { OddsMarket, OddsBookmaker } from "@/types/game";
+import { translateOutcome, translateBookmaker } from "@/lib/utils";
 
 interface MarketOddsTableProps {
   market: OddsMarket;
@@ -74,12 +75,16 @@ export function MarketOddsTable({ market, bookmakers }: MarketOddsTableProps) {
                 const best = bestOdds[outcome.name];
                 return (
                   <div key={index} className="text-center">
-                    <p className="text-sm font-medium mb-1">{outcome.name}</p>
+                    <p className="text-sm font-medium mb-1">
+                      {translateOutcome(outcome.name)}
+                    </p>
                     <Badge variant="default" className="text-lg font-mono mb-1">
                       {best?.price.toFixed(2) || "N/A"}
                     </Badge>
                     <p className="text-xs text-muted-foreground">
-                      {best?.bookmaker || "N/A"}
+                      {best?.bookmaker
+                        ? translateBookmaker(best.bookmaker)
+                        : "N/A"}
                     </p>
                   </div>
                 );
@@ -92,13 +97,15 @@ export function MarketOddsTable({ market, bookmakers }: MarketOddsTableProps) {
             <table className="w-full">
               <thead>
                 <tr className="border-b">
-                  <th className="text-left py-2 px-2 font-medium">Bookmaker</th>
+                  <th className="text-left py-2 px-2 font-medium">
+                    Casa de Apostas
+                  </th>
                   {outcomes.map((outcome, index) => (
                     <th
                       key={index}
                       className="text-center py-2 px-2 font-medium"
                     >
-                      {outcome.name}
+                      {translateOutcome(outcome.name)}
                     </th>
                   ))}
                 </tr>
@@ -115,7 +122,7 @@ export function MarketOddsTable({ market, bookmakers }: MarketOddsTableProps) {
                       className="border-b hover:bg-muted/20"
                     >
                       <td className="py-3 px-2 font-medium text-sm">
-                        {bookmaker.title}
+                        {translateBookmaker(bookmaker.title)}
                       </td>
                       {outcomes.map((outcome, outcomeIndex) => {
                         const bookmakerOutcome = bookmakerMarket?.outcomes.find(

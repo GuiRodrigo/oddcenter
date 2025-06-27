@@ -4,10 +4,12 @@ import { useSession } from "next-auth/react";
 import { useState, useCallback } from "react";
 import { MainLayout } from "@/components/layout/main-layout";
 import { OddsGamesList } from "@/components/games/OddsGamesList";
+import { ScoresList } from "@/components/games/ScoresList";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
@@ -84,6 +86,7 @@ export default function HomePage() {
   );
   const [appliedSearch, setAppliedSearch] = useState("");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [activeTab, setActiveTab] = useState<"odds" | "scores">("odds");
 
   if (status === "loading") {
     return <HomePageSkeleton />;
@@ -112,39 +115,74 @@ export default function HomePage() {
             onClear={() => setAppliedSearch("")}
           />
 
-          {/* Filtros de ordenação */}
-          <div className="flex justify-center gap-2 mb-4">
-            <Select
-              value={sortOrder}
-              onValueChange={(v) => setSortOrder(v as "asc" | "desc")}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Ordem" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="asc">Mais próximos</SelectItem>
-                <SelectItem value="desc">Mais distantes</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Tabs para Odds e Scores */}
+          <Tabs
+            value={activeTab}
+            onValueChange={(value) => setActiveTab(value as "odds" | "scores")}
+            className="space-y-4"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="odds">Odds e Apostas</TabsTrigger>
+              <TabsTrigger value="scores">Scores e Resultados</TabsTrigger>
+            </TabsList>
 
-          {/* Lista de jogos */}
-          {selectedSport ? (
-            <OddsGamesList
-              sportKey={selectedSport}
-              searchTerm={appliedSearch}
-              sortOrder={sortOrder}
-            />
-          ) : (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <p className="text-muted-foreground">
-                  Selecione um esporte no menu lateral para ver os jogos
-                  disponíveis.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+            {/* Tab de Odds */}
+            <TabsContent value="odds" className="space-y-4">
+              {/* Filtros de ordenação */}
+              <div className="flex justify-center gap-2 mb-4">
+                <Select
+                  value={sortOrder}
+                  onValueChange={(v) => setSortOrder(v as "asc" | "desc")}
+                >
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Ordem" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="asc">Mais próximos</SelectItem>
+                    <SelectItem value="desc">Mais distantes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Lista de jogos */}
+              {selectedSport ? (
+                <OddsGamesList
+                  sportKey={selectedSport}
+                  searchTerm={appliedSearch}
+                  sortOrder={sortOrder}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <p className="text-muted-foreground">
+                      Selecione um esporte no menu lateral para ver os jogos
+                      disponíveis.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            {/* Tab de Scores */}
+            <TabsContent value="scores" className="space-y-4">
+              {selectedSport ? (
+                <ScoresList
+                  sportKey={selectedSport}
+                  searchTerm={appliedSearch}
+                  showCompleted={true}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <p className="text-muted-foreground">
+                      Selecione um esporte no menu lateral para ver os scores e
+                      resultados disponíveis.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </MainLayout>

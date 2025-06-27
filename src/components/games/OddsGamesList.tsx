@@ -9,6 +9,7 @@ import { useOdds } from "@/components/odds/OddsContext";
 import type { OddsEvent, OddsBookmaker } from "@/types/game";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
+import { translateOutcome, translateBookmaker } from "@/lib/utils";
 
 type OddsGamesListProps = {
   sportKey: string;
@@ -38,7 +39,7 @@ const getMarketDisplayName = (marketKey: string): string => {
     h2h: "Resultado Final",
     spreads: "Handicap",
     totals: "Total de Pontos",
-    outrights: "Vencedor",
+    outrights: "Vencedor da Competição",
   };
 
   return marketNames[marketKey] || marketKey.toUpperCase();
@@ -51,10 +52,13 @@ const getOutcomeDisplayName = (
   awayTeam: string,
   hasDraw: boolean
 ): string => {
+  // Para esportes individuais, retornar o nome do jogador/participante
   if (outcomeName === homeTeam) return "Casa";
   if (outcomeName === awayTeam) return "Fora";
   if (outcomeName === "Draw" && hasDraw) return "Empate";
-  return outcomeName;
+
+  // Para outros casos (como golf), retornar o nome traduzido ou original
+  return translateOutcome(outcomeName);
 };
 
 // Tipos auxiliares para odds de bookmakers
@@ -98,9 +102,10 @@ export function OddsGamesList({
         setGames(data);
         // Salvar no cache para a página de detalhes
         localStorage.setItem("cachedGames", JSON.stringify(data));
-      } catch (err) {
-        setError("Erro ao carregar jogos");
-        console.error(err);
+      } catch {
+        setError(
+          `Erro ao carregar jogos para ${sportKey}. Pode ser que não haja odds disponíveis para este esporte no momento.`
+        );
       } finally {
         setLoading(false);
       }
@@ -122,17 +127,24 @@ export function OddsGamesList({
 
     const hasDraw = sportHasDraw(game.sport_key);
 
+    // Para esportes como golf, procurar por outrights em vez de h2h
+    const isIndividualSport = ["golf", "tennis", "mma", "boxing"].some(
+      (sport) => game.sport_key.toLowerCase().includes(sport)
+    );
+
     // Pegar até 3 bookmakers
     const selectedBookmakers = game.bookmakers.slice(0, 3);
 
     const bookmakerOdds = selectedBookmakers
       .map((bookmaker: OddsBookmaker) => {
-        const h2hMarket = bookmaker.markets.find((m) => m.key === "h2h");
-        if (!h2hMarket) return null;
+        const marketKey = isIndividualSport ? "outrights" : "h2h";
+        const market = bookmaker.markets.find((m) => m.key === marketKey);
 
-        // Filtrar outcomes baseado se o esporte tem empate
-        let outcomes = h2hMarket.outcomes;
-        if (!hasDraw) {
+        if (!market) return null;
+
+        // Filtrar outcomes baseado se o esporte tem empate (apenas para h2h)
+        let outcomes = market.outcomes;
+        if (marketKey === "h2h" && !hasDraw) {
           outcomes = outcomes.filter(
             (outcome) =>
               outcome.name === game.home_team || outcome.name === game.away_team
@@ -156,7 +168,7 @@ export function OddsGamesList({
       .filter((bm): bm is BookmakerOdds => bm !== null);
 
     return {
-      marketName: getMarketDisplayName("h2h"),
+      marketName: getMarketDisplayName(isIndividualSport ? "outrights" : "h2h"),
       bookmakers: bookmakerOdds,
       hasDraw,
     };
@@ -196,7 +208,7 @@ export function OddsGamesList({
         return {
           outcome: outcomeName,
           bestPrice: bestOdd.price,
-          bestBookmaker: bestOdd.bookmaker,
+          bestBookmaker: translateBookmaker(bestOdd.bookmaker),
           allPrices: oddsForOutcome,
         };
       })
@@ -246,7 +258,8 @@ export function OddsGamesList({
       <Card>
         <CardContent className="p-8 text-center">
           <p className="text-muted-foreground">
-            Nenhum jogo encontrado para este esporte.
+            Nenhum jogo encontrado para {sportKey}. Pode ser que não haja
+            eventos ativos ou odds disponíveis para este esporte no momento.
           </p>
         </CardContent>
       </Card>
@@ -311,7 +324,7 @@ export function OddsGamesList({
                     {bestOddsComparison.map((comparison, index) => (
                       <div key={index} className="text-center">
                         <p className="text-xs text-muted-foreground mb-1">
-                          {comparison.outcome}
+                          {translateOutcome(comparison.outcome)}
                         </p>
                         <Badge variant="default" className="font-mono text-sm">
                           {comparison.bestPrice.toFixed(2)}
@@ -324,11 +337,11 @@ export function OddsGamesList({
                   </div>
                 </div>
 
-                {/* Comparação entre Bookmakers */}
+                {/* Comparação entre Casas de Apostas */}
                 {oddsData.bookmakers.length > 1 ? (
                   <div className="border-t pt-3">
                     <h4 className="text-sm font-medium text-muted-foreground mb-2">
-                      Comparação de Bookmakers
+                      Comparação de Casas de Apostas
                     </h4>
                     <div className="space-y-2">
                       {oddsData.bookmakers.map(
@@ -338,7 +351,7 @@ export function OddsGamesList({
                             className="flex items-center justify-between text-sm"
                           >
                             <span className="font-medium text-xs">
-                              {bookmaker.bookmaker}
+                              {translateBookmaker(bookmaker.bookmaker)}
                             </span>
                             <div className="flex gap-2">
                               {bookmaker.outcomes.map(
@@ -350,6 +363,9 @@ export function OddsGamesList({
                                     key={outcomeIndex}
                                     className="text-center"
                                   >
+                                    <div className="text-xs text-muted-foreground mb-1">
+                                      {translateOutcome(outcome.displayName)}
+                                    </div>
                                     <Badge
                                       variant="outline"
                                       className="font-mono text-xs"
