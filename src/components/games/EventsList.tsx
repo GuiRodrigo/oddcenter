@@ -70,8 +70,8 @@ export function EventsList({
         daysUntilGame > 0
           ? `em ${daysUntilGame} dia${daysUntilGame > 1 ? "s" : ""}`
           : hoursUntilGame > 0
-          ? `em ${hoursUntilGame}h`
-          : "hoje",
+            ? `em ${hoursUntilGame}h`
+            : "hoje",
     };
   };
 
@@ -175,7 +175,7 @@ export function EventsList({
                     <Badge
                       className={cn(
                         "text-xs",
-                        getStatusColor(event.commence_time)
+                        getStatusColor(event.commence_time),
                       )}
                     >
                       {getStatusText(event.commence_time)}

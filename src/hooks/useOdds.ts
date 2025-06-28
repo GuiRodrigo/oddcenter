@@ -1,376 +1,409 @@
-"use client"
+"use client";
 
-import type { OddsSport, OddsEvent } from "@/types/game"
-import { useState, useEffect, useCallback } from "react"
-import { intelligentCache } from "@/lib/cache"
+import type { OddsSport, OddsEvent } from "@/types/game";
+import { useState, useEffect, useCallback } from "react";
+import { intelligentCache } from "@/lib/cache";
 
 export function useOdds() {
-    const [sports, setSports] = useState<OddsSport[]>([])
-    const [loading, setLoading] = useState(true)
+  const [sports, setSports] = useState<OddsSport[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
-        const loadSports = async () => {
-            setLoading(true)
+  useEffect(() => {
+    const loadSports = async () => {
+      setLoading(true);
 
-            // Verificar cache primeiro
-            const cacheKey = "sports_list"
-            if (intelligentCache.shouldUseCache(cacheKey)) {
-                const cached = intelligentCache.get<OddsSport[]>(cacheKey)
-                if (cached) {
-                    setSports(cached)
-                    setLoading(false)
-                    return
-                }
-            }
+      // Verificar cache primeiro
+      const cacheKey = "sports_list";
+      if (intelligentCache.shouldUseCache(cacheKey)) {
+        const cached = intelligentCache.get<OddsSport[]>(cacheKey);
+        if (cached) {
+          setSports(cached);
+          setLoading(false);
+          return;
+        }
+      }
 
-            try {
-                const res = await fetch("/api/oddsApi")
+      try {
+        const res = await fetch("/api/oddsApi");
 
-                if (!res.ok) {
-                    setLoading(false)
-                    return
-                }
-
-                const contentType = res.headers.get("content-type")
-                if (!contentType?.includes("application/json")) {
-                    setLoading(false)
-                    return
-                }
-
-                const data = await res.json()
-                setSports(data)
-
-                // Armazenar no cache
-                intelligentCache.set(cacheKey, data)
-
-                // Atualizar informações de quota
-                intelligentCache.updateQuota(res.headers)
-
-                setLoading(false)
-            } catch (error) {
-                console.error("Erro ao carregar esportes:", error)
-                setLoading(false)
-            }
+        if (!res.ok) {
+          setLoading(false);
+          return;
         }
 
-        loadSports()
-    }, [])
+        const contentType = res.headers.get("content-type");
+        if (!contentType?.includes("application/json")) {
+          setLoading(false);
+          return;
+        }
 
-    const fetchOdds = useCallback(
-        async (
-            sportKey: string,
-            options?: {
-                regions?: string
-                markets?: string
-                oddsFormat?: "american" | "decimal" | "hongkong" | "indonesian" | "malay"
-                dateFormat?: "iso" | "unix"
-            },
-        ) => {
-            const cacheKey = `odds_${sportKey}_${JSON.stringify(options)}`
+        const data = await res.json();
+        setSports(data);
 
-            // Verificar cache primeiro
-            if (intelligentCache.shouldUseCache(cacheKey)) {
-                const cached = intelligentCache.get<OddsEvent[]>(cacheKey)
-                if (cached) return cached
+        // Armazenar no cache
+        intelligentCache.set(cacheKey, data);
+
+        // Atualizar informações de quota
+        intelligentCache.updateQuota(res.headers);
+
+        setLoading(false);
+      } catch (error) {
+        console.error("Erro ao carregar esportes:", error);
+        setLoading(false);
+      }
+    };
+
+    loadSports();
+  }, []);
+
+  const fetchOdds = useCallback(
+    async (
+      sportKey: string,
+      options?: {
+        regions?: string;
+        markets?: string;
+        oddsFormat?:
+          | "american"
+          | "decimal"
+          | "hongkong"
+          | "indonesian"
+          | "malay";
+        dateFormat?: "iso" | "unix";
+      },
+    ) => {
+      const cacheKey = `odds_${sportKey}_${JSON.stringify(options)}`;
+
+      // Verificar cache primeiro
+      if (intelligentCache.shouldUseCache(cacheKey)) {
+        const cached = intelligentCache.get<OddsEvent[]>(cacheKey);
+        if (cached) return cached;
+      }
+
+      // Função para determinar mercados apropriados por esporte
+      const getAppropriateMarkets = (
+        sportKey: string,
+        requestedMarkets: string,
+      ): string => {
+        const noH2HSports = ["golf", "tennis", "mma", "boxing", "outrights"];
+
+        if (
+          noH2HSports.some((sport) => sportKey.toLowerCase().includes(sport))
+        ) {
+          if (requestedMarkets.includes("h2h")) {
+            return "outrights";
+          }
+        }
+
+        return requestedMarkets;
+      };
+
+      const defaultMarkets = options?.markets || "h2h";
+      const appropriateMarkets = getAppropriateMarkets(
+        sportKey,
+        defaultMarkets,
+      );
+
+      const params = new URLSearchParams({
+        type: "odds",
+        sportKey,
+        regions: options?.regions || "us,eu,uk",
+        markets: appropriateMarkets,
+        oddsFormat: options?.oddsFormat || "decimal",
+        dateFormat: options?.dateFormat || "iso",
+      });
+
+      try {
+        const res = await fetch(`/api/oddsApi?${params}`);
+        if (!res.ok) {
+          let errorMsg = "Erro ao buscar odds";
+          const status = res.status;
+          try {
+            const errJson = await res.json();
+            if (
+              status === 429 &&
+              errJson.error?.includes("Odds API") &&
+              errJson.details?.includes("Usage quota")
+            ) {
+              errorMsg =
+                "Limite da cota gratuita utilizado. Aguarde ou contrate um plano para continuar.";
+            } else {
+              errorMsg = errJson.error || errorMsg;
+              if (errJson.details) errorMsg += ": " + errJson.details;
             }
+          } catch {}
+          const err = new Error(errorMsg) as Error & { status?: number };
+          err.status = status;
+          throw err;
+        }
+        const contentType = res.headers.get("content-type");
+        if (!contentType?.includes("application/json")) {
+          throw new Error("Resposta inesperada da API");
+        }
+        const data = await res.json();
+        intelligentCache.set(cacheKey, data);
+        intelligentCache.updateQuota(res.headers);
+        return data as OddsEvent[];
+      } catch (error) {
+        console.error("Erro ao buscar odds:", error);
+        throw error;
+      }
+    },
+    [],
+  );
 
-            // Função para determinar mercados apropriados por esporte
-            const getAppropriateMarkets = (sportKey: string, requestedMarkets: string): string => {
-                const noH2HSports = ["golf", "tennis", "mma", "boxing", "outrights"]
+  const fetchScores = useCallback(
+    async (
+      sportKey: string,
+      options?: {
+        dateFormat?: "iso" | "unix";
+      },
+    ) => {
+      const cacheKey = `scores_${sportKey}_${JSON.stringify(options)}`;
 
-                if (noH2HSports.some((sport) => sportKey.toLowerCase().includes(sport))) {
-                    if (requestedMarkets.includes("h2h")) {
-                        return "outrights"
-                    }
-                }
+      // Verificar cache primeiro
+      if (intelligentCache.shouldUseCache(cacheKey)) {
+        const cached = intelligentCache.get(cacheKey);
+        if (cached) return cached;
+      }
 
-                return requestedMarkets
+      const params = new URLSearchParams({
+        type: "scores",
+        sportKey,
+        dateFormat: options?.dateFormat || "iso",
+      });
+
+      try {
+        const res = await fetch(`/api/oddsApi?${params}`);
+        if (!res.ok) {
+          let errorMsg = "Erro ao buscar scores";
+          const status = res.status;
+          try {
+            const errJson = await res.json();
+            if (
+              status === 429 &&
+              errJson.error?.includes("Odds API") &&
+              errJson.details?.includes("Usage quota")
+            ) {
+              errorMsg =
+                "Limite da cota gratuita da api utilizado. Aguarde ou contrate um plano para continuar.";
+            } else {
+              errorMsg = errJson.error || errorMsg;
+              if (errJson.details) errorMsg += ": " + errJson.details;
             }
+          } catch {}
+          const err = new Error(errorMsg) as Error & { status?: number };
+          err.status = status;
+          throw err;
+        }
+        const data = await res.json();
+        intelligentCache.set(cacheKey, data);
+        intelligentCache.updateQuota(res.headers);
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar scores:", error);
+        throw error;
+      }
+    },
+    [],
+  );
 
-            const defaultMarkets = options?.markets || "h2h"
-            const appropriateMarkets = getAppropriateMarkets(sportKey, defaultMarkets)
+  const fetchEvents = useCallback(
+    async (
+      sportKey: string,
+      options?: {
+        dateFormat?: "iso" | "unix";
+      },
+    ) => {
+      const cacheKey = `events_${sportKey}_${JSON.stringify(options)}`;
 
-            const params = new URLSearchParams({
-                type: "odds",
-                sportKey,
-                regions: options?.regions || "us,eu,uk",
-                markets: appropriateMarkets,
-                oddsFormat: options?.oddsFormat || "decimal",
-                dateFormat: options?.dateFormat || "iso",
-            })
+      // Verificar cache primeiro
+      if (intelligentCache.shouldUseCache(cacheKey)) {
+        const cached = intelligentCache.get(cacheKey);
+        if (cached) return cached;
+      }
 
-            try {
-                const res = await fetch(`/api/oddsApi?${params}`)
-                if (!res.ok) {
-                    let errorMsg = "Erro ao buscar odds";
-                    const status = res.status;
-                    try {
-                        const errJson = await res.json();
-                        if (status === 429 && errJson.error?.includes("Odds API") && errJson.details?.includes("Usage quota")) {
-                            errorMsg = "Limite da cota gratuita utilizado. Aguarde ou contrate um plano para continuar.";
-                        } else {
-                            errorMsg = errJson.error || errorMsg;
-                            if (errJson.details) errorMsg += ": " + errJson.details;
-                        }
-                    } catch { }
-                    const err = new Error(errorMsg) as Error & { status?: number };
-                    err.status = status;
-                    throw err;
-                }
-                const contentType = res.headers.get("content-type");
-                if (!contentType?.includes("application/json")) {
-                    throw new Error("Resposta inesperada da API");
-                }
-                const data = await res.json();
-                intelligentCache.set(cacheKey, data);
-                intelligentCache.updateQuota(res.headers);
-                return data as OddsEvent[];
-            } catch (error) {
-                console.error("Erro ao buscar odds:", error);
-                throw error;
-            }
-        },
-        [],
-    )
+      const params = new URLSearchParams({
+        type: "events",
+        sportKey,
+        dateFormat: options?.dateFormat || "iso",
+      });
 
-    const fetchScores = useCallback(
-        async (
-            sportKey: string,
-            options?: {
-                dateFormat?: "iso" | "unix"
-            },
-        ) => {
-            const cacheKey = `scores_${sportKey}_${JSON.stringify(options)}`
+      try {
+        const res = await fetch(`/api/oddsApi?${params}`);
 
-            // Verificar cache primeiro
-            if (intelligentCache.shouldUseCache(cacheKey)) {
-                const cached = intelligentCache.get(cacheKey)
-                if (cached) return cached
-            }
+        if (!res.ok) {
+          return [];
+        }
 
-            const params = new URLSearchParams({
-                type: "scores",
-                sportKey,
-                dateFormat: options?.dateFormat || "iso",
-            })
+        const data = await res.json();
 
-            try {
-                const res = await fetch(`/api/oddsApi?${params}`)
-                if (!res.ok) {
-                    let errorMsg = "Erro ao buscar scores";
-                    const status = res.status;
-                    try {
-                        const errJson = await res.json();
-                        if (status === 429 && errJson.error?.includes("Odds API") && errJson.details?.includes("Usage quota")) {
-                            errorMsg = "Limite da cota gratuita da api utilizado. Aguarde ou contrate um plano para continuar.";
-                        } else {
-                            errorMsg = errJson.error || errorMsg;
-                            if (errJson.details) errorMsg += ": " + errJson.details;
-                        }
-                    } catch { }
-                    const err = new Error(errorMsg) as Error & { status?: number };
-                    err.status = status;
-                    throw err;
-                }
-                const data = await res.json();
-                intelligentCache.set(cacheKey, data);
-                intelligentCache.updateQuota(res.headers);
-                return data;
-            } catch (error) {
-                console.error("Erro ao buscar scores:", error);
-                throw error;
-            }
-        },
-        [],
-    )
+        // Armazenar no cache
+        intelligentCache.set(cacheKey, data);
 
-    const fetchEvents = useCallback(
-        async (
-            sportKey: string,
-            options?: {
-                dateFormat?: "iso" | "unix"
-            },
-        ) => {
-            const cacheKey = `events_${sportKey}_${JSON.stringify(options)}`
+        // Atualizar informações de quota
+        intelligentCache.updateQuota(res.headers);
 
-            // Verificar cache primeiro
-            if (intelligentCache.shouldUseCache(cacheKey)) {
-                const cached = intelligentCache.get(cacheKey)
-                if (cached) return cached
-            }
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar eventos:", error);
+        return [];
+      }
+    },
+    [],
+  );
 
-            const params = new URLSearchParams({
-                type: "events",
-                sportKey,
-                dateFormat: options?.dateFormat || "iso",
-            })
+  // Funções para dados históricos (mantidas como estavam)
+  const fetchHistoricalOdds = useCallback(
+    async (
+      sportKey: string,
+      date: string,
+      options?: {
+        regions?: string;
+        markets?: string;
+        oddsFormat?:
+          | "american"
+          | "decimal"
+          | "hongkong"
+          | "indonesian"
+          | "malay";
+        dateFormat?: "iso" | "unix";
+      },
+    ) => {
+      const cacheKey = `historical_odds_${sportKey}_${date}`;
 
-            try {
-                const res = await fetch(`/api/oddsApi?${params}`)
+      if (intelligentCache.shouldUseCache(cacheKey)) {
+        const cached = intelligentCache.get(cacheKey);
+        if (cached) return cached;
+      }
 
-                if (!res.ok) {
-                    return []
-                }
+      const params = new URLSearchParams({
+        type: "historical_odds",
+        sportKey,
+        date,
+        regions: options?.regions || "us,eu,uk",
+        markets: options?.markets || "h2h",
+        oddsFormat: options?.oddsFormat || "decimal",
+        dateFormat: options?.dateFormat || "iso",
+      });
 
-                const data = await res.json()
+      try {
+        const res = await fetch(`/api/oddsApi?${params}`);
 
-                // Armazenar no cache
-                intelligentCache.set(cacheKey, data)
+        if (!res.ok) {
+          return [];
+        }
 
-                // Atualizar informações de quota
-                intelligentCache.updateQuota(res.headers)
+        const data = await res.json();
+        intelligentCache.set(cacheKey, data);
+        intelligentCache.updateQuota(res.headers);
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar dados históricos:", error);
+        return [];
+      }
+    },
+    [],
+  );
 
-                return data
-            } catch (error) {
-                console.error("Erro ao buscar eventos:", error)
-                return []
-            }
-        },
-        [],
-    )
+  const fetchHistoricalEvents = useCallback(
+    async (
+      sportKey: string,
+      date: string,
+      options?: {
+        dateFormat?: "iso" | "unix";
+      },
+    ) => {
+      const cacheKey = `historical_events_${sportKey}_${date}`;
 
-    // Funções para dados históricos (mantidas como estavam)
-    const fetchHistoricalOdds = useCallback(
-        async (
-            sportKey: string,
-            date: string,
-            options?: {
-                regions?: string
-                markets?: string
-                oddsFormat?: "american" | "decimal" | "hongkong" | "indonesian" | "malay"
-                dateFormat?: "iso" | "unix"
-            },
-        ) => {
-            const cacheKey = `historical_odds_${sportKey}_${date}`
+      if (intelligentCache.shouldUseCache(cacheKey)) {
+        const cached = intelligentCache.get(cacheKey);
+        if (cached) return cached;
+      }
 
-            if (intelligentCache.shouldUseCache(cacheKey)) {
-                const cached = intelligentCache.get(cacheKey)
-                if (cached) return cached
-            }
+      const params = new URLSearchParams({
+        type: "historical_events",
+        sportKey,
+        date,
+        dateFormat: options?.dateFormat || "iso",
+      });
 
-            const params = new URLSearchParams({
-                type: "historical_odds",
-                sportKey,
-                date,
-                regions: options?.regions || "us,eu,uk",
-                markets: options?.markets || "h2h",
-                oddsFormat: options?.oddsFormat || "decimal",
-                dateFormat: options?.dateFormat || "iso",
-            })
+      try {
+        const res = await fetch(`/api/oddsApi?${params}`);
 
-            try {
-                const res = await fetch(`/api/oddsApi?${params}`)
+        if (!res.ok) {
+          return [];
+        }
 
-                if (!res.ok) {
-                    return []
-                }
+        const data = await res.json();
+        intelligentCache.set(cacheKey, data);
+        intelligentCache.updateQuota(res.headers);
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar eventos históricos:", error);
+        return [];
+      }
+    },
+    [],
+  );
 
-                const data = await res.json()
-                intelligentCache.set(cacheKey, data)
-                intelligentCache.updateQuota(res.headers)
-                return data
-            } catch (error) {
-                console.error("Erro ao buscar dados históricos:", error)
-                return []
-            }
-        },
-        [],
-    )
+  const fetchHistoricalEventOdds = useCallback(
+    async (
+      eventId: string,
+      options?: {
+        regions?: string;
+        markets?: string;
+        oddsFormat?:
+          | "american"
+          | "decimal"
+          | "hongkong"
+          | "indonesian"
+          | "malay";
+        dateFormat?: "iso" | "unix";
+      },
+    ) => {
+      const cacheKey = `historical_event_odds_${eventId}`;
 
-    const fetchHistoricalEvents = useCallback(
-        async (
-            sportKey: string,
-            date: string,
-            options?: {
-                dateFormat?: "iso" | "unix"
-            },
-        ) => {
-            const cacheKey = `historical_events_${sportKey}_${date}`
+      if (intelligentCache.shouldUseCache(cacheKey)) {
+        const cached = intelligentCache.get(cacheKey);
+        if (cached) return cached;
+      }
 
-            if (intelligentCache.shouldUseCache(cacheKey)) {
-                const cached = intelligentCache.get(cacheKey)
-                if (cached) return cached
-            }
+      const params = new URLSearchParams({
+        type: "historical_event_odds",
+        eventId,
+        regions: options?.regions || "us,eu,uk",
+        markets: options?.markets || "h2h",
+        oddsFormat: options?.oddsFormat || "decimal",
+        dateFormat: options?.dateFormat || "iso",
+      });
 
-            const params = new URLSearchParams({
-                type: "historical_events",
-                sportKey,
-                date,
-                dateFormat: options?.dateFormat || "iso",
-            })
+      try {
+        const res = await fetch(`/api/oddsApi?${params}`);
 
-            try {
-                const res = await fetch(`/api/oddsApi?${params}`)
+        if (!res.ok) {
+          return [];
+        }
 
-                if (!res.ok) {
-                    return []
-                }
+        const data = await res.json();
+        intelligentCache.set(cacheKey, data);
+        intelligentCache.updateQuota(res.headers);
+        return data;
+      } catch (error) {
+        console.error("Erro ao buscar odds de evento histórico:", error);
+        return [];
+      }
+    },
+    [],
+  );
 
-                const data = await res.json()
-                intelligentCache.set(cacheKey, data)
-                intelligentCache.updateQuota(res.headers)
-                return data
-            } catch (error) {
-                console.error("Erro ao buscar eventos históricos:", error)
-                return []
-            }
-        },
-        [],
-    )
-
-    const fetchHistoricalEventOdds = useCallback(
-        async (
-            eventId: string,
-            options?: {
-                regions?: string
-                markets?: string
-                oddsFormat?: "american" | "decimal" | "hongkong" | "indonesian" | "malay"
-                dateFormat?: "iso" | "unix"
-            },
-        ) => {
-            const cacheKey = `historical_event_odds_${eventId}`
-
-            if (intelligentCache.shouldUseCache(cacheKey)) {
-                const cached = intelligentCache.get(cacheKey)
-                if (cached) return cached
-            }
-
-            const params = new URLSearchParams({
-                type: "historical_event_odds",
-                eventId,
-                regions: options?.regions || "us,eu,uk",
-                markets: options?.markets || "h2h",
-                oddsFormat: options?.oddsFormat || "decimal",
-                dateFormat: options?.dateFormat || "iso",
-            })
-
-            try {
-                const res = await fetch(`/api/oddsApi?${params}`)
-
-                if (!res.ok) {
-                    return []
-                }
-
-                const data = await res.json()
-                intelligentCache.set(cacheKey, data)
-                intelligentCache.updateQuota(res.headers)
-                return data
-            } catch (error) {
-                console.error("Erro ao buscar odds de evento histórico:", error)
-                return []
-            }
-        },
-        [],
-    )
-
-    return {
-        sports,
-        loading,
-        fetchOdds,
-        fetchScores,
-        fetchEvents,
-        fetchHistoricalOdds,
-        fetchHistoricalEvents,
-        fetchHistoricalEventOdds,
-    }
+  return {
+    sports,
+    loading,
+    fetchOdds,
+    fetchScores,
+    fetchEvents,
+    fetchHistoricalOdds,
+    fetchHistoricalEvents,
+    fetchHistoricalEventOdds,
+  };
 }

@@ -34,9 +34,9 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
   const availableMarkets = Array.from(
     new Set(
       game.bookmakers.flatMap((bookmaker) =>
-        bookmaker.markets.map((market) => market.key)
-      )
-    )
+        bookmaker.markets.map((market) => market.key),
+      ),
+    ),
   ).map((marketKey) => {
     const firstMarket = game.bookmakers
       .flatMap((b) => b.markets)
@@ -163,8 +163,8 @@ export function GameDetailsView({ game, onBack }: GameDetailsViewProps) {
               <p className="text-2xl font-bold text-green-500">
                 {Math.max(
                   ...game.bookmakers.flatMap((b) =>
-                    b.markets.flatMap((m) => m.outcomes.map((o) => o.price))
-                  )
+                    b.markets.flatMap((m) => m.outcomes.map((o) => o.price)),
+                  ),
                 ).toFixed(2)}
               </p>
               <p className="text-sm text-muted-foreground">Melhor Odd</p>

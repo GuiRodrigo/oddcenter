@@ -51,7 +51,7 @@ export function MarketOddsTable({ market, bookmakers }: MarketOddsTableProps) {
 
   // Filtrar bookmakers que têm este mercado
   const relevantBookmakers = bookmakers.filter((bookmaker) =>
-    bookmaker.markets.some((m) => m.key === market.key)
+    bookmaker.markets.some((m) => m.key === market.key),
   );
 
   return (
@@ -113,7 +113,7 @@ export function MarketOddsTable({ market, bookmakers }: MarketOddsTableProps) {
               <tbody>
                 {relevantBookmakers.map((bookmaker, bookmakerIndex) => {
                   const bookmakerMarket = bookmaker.markets.find(
-                    (m) => m.key === market.key
+                    (m) => m.key === market.key,
                   );
 
                   return (
@@ -126,7 +126,7 @@ export function MarketOddsTable({ market, bookmakers }: MarketOddsTableProps) {
                       </td>
                       {outcomes.map((outcome, outcomeIndex) => {
                         const bookmakerOutcome = bookmakerMarket?.outcomes.find(
-                          (o) => o.name === outcome.name
+                          (o) => o.name === outcome.name,
                         );
                         const isBest =
                           bestOdds[outcome.name]?.bookmaker === bookmaker.title;

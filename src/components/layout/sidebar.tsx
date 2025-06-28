@@ -50,14 +50,17 @@ const GROUP_TRANSLATIONS: Record<string, string> = {
 
 // Função para agrupar esportes por categoria
 const groupSportsByCategory = (sports: OddsSport[]) => {
-  const grouped = sports.reduce((acc, sport) => {
-    const group = sport.group || "Outros";
-    if (!acc[group]) {
-      acc[group] = [];
-    }
-    acc[group].push(sport);
-    return acc;
-  }, {} as Record<string, OddsSport[]>);
+  const grouped = sports.reduce(
+    (acc, sport) => {
+      const group = sport.group || "Outros";
+      if (!acc[group]) {
+        acc[group] = [];
+      }
+      acc[group].push(sport);
+      return acc;
+    },
+    {} as Record<string, OddsSport[]>,
+  );
 
   // Ordenar grupos por prioridade
   const priorityOrder = [
@@ -81,7 +84,7 @@ const groupSportsByCategory = (sports: OddsSport[]) => {
   priorityOrder.forEach((group) => {
     if (grouped[group]) {
       sortedGroups[group] = grouped[group].sort((a, b) =>
-        a.title.localeCompare(b.title)
+        a.title.localeCompare(b.title),
       );
     }
   });
@@ -92,7 +95,7 @@ const groupSportsByCategory = (sports: OddsSport[]) => {
     .sort()
     .forEach((group) => {
       sortedGroups[group] = grouped[group].sort((a, b) =>
-        a.title.localeCompare(b.title)
+        a.title.localeCompare(b.title),
       );
     });
 
@@ -138,7 +141,7 @@ export function Sidebar({
       activationConstraint: {
         distance: 8, // só ativa drag se mover 8px
       },
-    })
+    }),
   );
   const [activeDrag, setActiveDrag] = useState<string | null>(null);
 
@@ -161,7 +164,7 @@ export function Sidebar({
     setFavoriteSports((prev) =>
       prev.includes(sportKey)
         ? prev.filter((key) => key !== sportKey)
-        : [...prev, sportKey]
+        : [...prev, sportKey],
     );
   };
 
@@ -181,7 +184,7 @@ export function Sidebar({
   };
 
   const groupedSports = groupSportsByCategory(
-    sports.filter((sport) => sport.active)
+    sports.filter((sport) => sport.active),
   );
 
   if (loading) {
@@ -255,7 +258,7 @@ export function Sidebar({
                           className={cn(
                             "w-44 flex-1 justify-start h-7 text-xs text-muted-foreground hover:text-foreground",
                             selectedSport === sport.key &&
-                              "bg-primary/10 text-primary"
+                              "bg-primary/10 text-primary",
                           )}
                           onClick={() => onSportSelect(sport.key)}
                         >
@@ -281,7 +284,7 @@ export function Sidebar({
                               "h-4 w-4 cursor-pointer",
                               favoriteSports.includes(sport.key)
                                 ? "text-yellow-400"
-                                : "text-muted-foreground"
+                                : "text-muted-foreground",
                             )}
                             fill={
                               favoriteSports.includes(sport.key)

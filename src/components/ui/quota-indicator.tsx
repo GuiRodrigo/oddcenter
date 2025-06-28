@@ -100,8 +100,8 @@ export function QuotaIndicator({
                 status === "critical"
                   ? "destructive"
                   : status === "warning"
-                  ? "secondary"
-                  : "default"
+                    ? "secondary"
+                    : "default"
               }
               className="text-xs"
             >
@@ -121,7 +121,7 @@ export function QuotaIndicator({
             className={cn(
               "h-2",
               status === "critical" && "bg-red-100",
-              status === "warning" && "bg-yellow-100"
+              status === "warning" && "bg-yellow-100",
             )}
           />
         </div>

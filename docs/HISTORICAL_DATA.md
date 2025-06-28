@@ -71,13 +71,13 @@ const historicalOdds = await fetchHistoricalOdds(
     regions: "us,eu,uk",
     markets: "h2h,spreads,totals",
     oddsFormat: "decimal",
-  }
+  },
 );
 
 // Buscar eventos históricos
 const historicalEvents = await fetchHistoricalEvents(
   "soccer_brazil_campeonato",
-  "2024-01-15"
+  "2024-01-15",
 );
 
 // Buscar odds de um evento específico
@@ -104,7 +104,7 @@ Todos os dados históricos são automaticamente cacheados usando o sistema de ca
 const todayOdds = await fetchOdds("soccer_brazil_campeonato");
 const yesterdayOdds = await fetchHistoricalOdds(
   "soccer_brazil_campeonato",
-  "2024-01-14"
+  "2024-01-14",
 );
 
 // Analisar mudanças nas odds
@@ -117,7 +117,9 @@ const oddsChanges = analyzeOddsChanges(todayOdds, yesterdayOdds);
 // Gerar relatório de odds de uma semana
 const weekDates = getWeekDates();
 const weeklyOdds = await Promise.all(
-  weekDates.map((date) => fetchHistoricalOdds("soccer_brazil_campeonato", date))
+  weekDates.map((date) =>
+    fetchHistoricalOdds("soccer_brazil_campeonato", date),
+  ),
 );
 
 const report = generateWeeklyReport(weeklyOdds);

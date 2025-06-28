@@ -49,12 +49,12 @@ export function ScoresList({
       } catch (err) {
         if ((err as { status?: number }).status === 429) {
           setError(
-            "Limite de requisições da API atingido. Aguarde alguns minutos e tente novamente."
+            "Limite de requisições da API atingido. Aguarde alguns minutos e tente novamente.",
           );
         } else {
           setError(
             (err as Error).message ||
-              "Erro ao carregar scores. Tente novamente mais tarde."
+              "Erro ao carregar scores. Tente novamente mais tarde.",
           );
         }
         console.error(err);

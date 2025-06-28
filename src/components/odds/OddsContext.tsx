@@ -13,19 +13,19 @@ export type OddsContextType = {
       markets?: string;
       oddsFormat?: "american" | "decimal" | "hongkong" | "indonesian" | "malay";
       dateFormat?: "iso" | "unix";
-    }
+    },
   ) => Promise<OddsEvent[]>;
   fetchScores: (
     sportKey: string,
     options?: {
       dateFormat?: "iso" | "unix";
-    }
+    },
   ) => Promise<ScoreEvent[]>;
   fetchEvents: (
     sportKey: string,
     options?: {
       dateFormat?: "iso" | "unix";
-    }
+    },
   ) => Promise<Event[]>;
   fetchHistoricalOdds: (
     sportKey: string,
@@ -35,14 +35,14 @@ export type OddsContextType = {
       markets?: string;
       oddsFormat?: "american" | "decimal" | "hongkong" | "indonesian" | "malay";
       dateFormat?: "iso" | "unix";
-    }
+    },
   ) => Promise<unknown[]>;
   fetchHistoricalEvents: (
     sportKey: string,
     date: string,
     options?: {
       dateFormat?: "iso" | "unix";
-    }
+    },
   ) => Promise<unknown[]>;
   fetchHistoricalEventOdds: (
     eventId: string,
@@ -51,12 +51,12 @@ export type OddsContextType = {
       markets?: string;
       oddsFormat?: "american" | "decimal" | "hongkong" | "indonesian" | "malay";
       dateFormat?: "iso" | "unix";
-    }
+    },
   ) => Promise<unknown[]>;
 };
 
 export const OddsContext = createContext<OddsContextType | undefined>(
-  undefined
+  undefined,
 );
 
 export function useOdds() {

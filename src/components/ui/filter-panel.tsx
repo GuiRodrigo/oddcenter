@@ -84,7 +84,7 @@ export function FilterPanel({
 
   const updateFilter = (
     key: keyof FilterOptions,
-    value: string | string[] | boolean
+    value: string | string[] | boolean,
   ) => {
     onFiltersChange({
       ...filters,

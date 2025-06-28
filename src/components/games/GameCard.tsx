@@ -68,7 +68,7 @@ export function GameCard({
 
   const getBestOddValue = () => {
     const odds = [game.odds.home, game.odds.draw, game.odds.away].filter(
-      (v): v is number => typeof v === "number"
+      (v): v is number => typeof v === "number",
     );
     return Math.max(...odds);
   };
@@ -77,7 +77,7 @@ export function GameCard({
     <Card
       className={cn(
         "transition-all duration-200 hover:shadow-md cursor-pointer max-w-[75vw]",
-        isFeatured && "border-primary bg-primary/5"
+        isFeatured && "border-primary bg-primary/5",
       )}
       onClick={() => onViewDetails?.(game.id)}
     >

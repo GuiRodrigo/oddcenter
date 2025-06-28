@@ -78,7 +78,7 @@ export function FavoriteCategories({
             <div className="opacity-80">
               {(() => {
                 const sport = favoriteSportsDetails.find(
-                  (s) => s?.key === activeDrag
+                  (s) => s?.key === activeDrag,
                 );
                 if (!sport) return null;
                 return (
@@ -128,7 +128,7 @@ function DraggableFavorite({
       {...listeners}
       className={cn(
         "flex items-center justify-between w-50 gap-1 cursor-grab",
-        isDragging || sortableDragging ? "opacity-60 bg-muted" : ""
+        isDragging || sortableDragging ? "opacity-60 bg-muted" : "",
       )}
       style={{
         zIndex: isDragging || sortableDragging ? 50 : undefined,
@@ -143,7 +143,7 @@ function DraggableFavorite({
         variant="ghost"
         className={cn(
           "w-50 flex-1 justify-start gap-2 h-8 text-sm",
-          selectedSport === sport.key && "bg-primary/10 text-primary"
+          selectedSport === sport.key && "bg-primary/10 text-primary",
         )}
         onClick={() => onSportSelect(sport.key)}
       >
