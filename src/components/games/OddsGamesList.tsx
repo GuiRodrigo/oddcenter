@@ -82,7 +82,11 @@ interface BestOddsComparison {
   allPrices: { bookmaker: string; price: number }[];
 }
 
-export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsGamesListProps) {
+export function OddsGamesList({
+  sportKey,
+  searchTerm,
+  sortOrder = "asc",
+}: OddsGamesListProps) {
   const router = useRouter();
   const { fetchOdds } = useOdds();
   const [games, setGames] = useState<OddsEvent[]>([]);
@@ -105,7 +109,10 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
             "Limite de requisições da API atingido. Aguarde alguns minutos e tente novamente.",
           );
         } else {
-          setError((err as Error).message || "Erro ao carregar jogos. Tente novamente mais tarde.");
+          setError(
+            (err as Error).message ||
+              "Erro ao carregar jogos. Tente novamente mais tarde.",
+          );
         }
       } finally {
         setLoading(false);
@@ -129,8 +136,8 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
     const hasDraw = sportHasDraw(game.sport_key);
 
     // Para esportes como golf, procurar por outrights em vez de h2h
-    const isIndividualSport = ["golf", "tennis", "mma", "boxing"].some((sport) =>
-      game.sport_key.toLowerCase().includes(sport),
+    const isIndividualSport = ["golf", "tennis", "mma", "boxing"].some(
+      (sport) => game.sport_key.toLowerCase().includes(sport),
     );
 
     // Pegar até 3 bookmakers
@@ -147,7 +154,9 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
         let outcomes = market.outcomes;
         if (marketKey === "h2h" && !hasDraw) {
           outcomes = outcomes.filter(
-            (outcome) => outcome.name === game.home_team || outcome.name === game.away_team,
+            (outcome) =>
+              outcome.name === game.home_team ||
+              outcome.name === game.away_team,
           );
         }
 
@@ -175,19 +184,30 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
   };
 
   // Função para encontrar a melhor odd de cada resultado
-  const getBestOddsComparison = (bookmakerOdds: BookmakerOdds[]): BestOddsComparison[] => {
+  const getBestOddsComparison = (
+    bookmakerOdds: BookmakerOdds[],
+  ): BestOddsComparison[] => {
     if (!bookmakerOdds.length) return [];
 
-    const allOutcomes = bookmakerOdds[0].outcomes.map((outcome) => outcome.displayName);
+    const allOutcomes = bookmakerOdds[0].outcomes.map(
+      (outcome) => outcome.displayName,
+    );
 
     return allOutcomes
       .map((outcomeName) => {
         const oddsForOutcome = bookmakerOdds
           .map((bm) => {
-            const outcome = bm.outcomes.find((o) => o.displayName === outcomeName);
-            return outcome ? { bookmaker: bm.bookmaker, price: outcome.price } : null;
+            const outcome = bm.outcomes.find(
+              (o) => o.displayName === outcomeName,
+            );
+            return outcome
+              ? { bookmaker: bm.bookmaker, price: outcome.price }
+              : null;
           })
-          .filter((item): item is { bookmaker: string; price: number } => item !== null);
+          .filter(
+            (item): item is { bookmaker: string; price: number } =>
+              item !== null,
+          );
 
         if (!oddsForOutcome.length) return null;
         const bestOdd = oddsForOutcome.reduce((best, current) =>
@@ -215,9 +235,11 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
     : games;
 
   // Ordenar jogos apenas por data
-  const sortedGames = orderBy(filteredGames, (game) => new Date(game.commence_time).getTime(), [
-    sortOrder,
-  ]);
+  const sortedGames = orderBy(
+    filteredGames,
+    (game) => new Date(game.commence_time).getTime(),
+    [sortOrder],
+  );
 
   if (loading) {
     return (
@@ -235,13 +257,15 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
         <CardContent className="p-8 text-center">
           <TrendingUp className="h-12 w-12 text-yellow-500 mx-auto mb-4 animate-bounce" />
           <h3 className="text-lg font-semibold mb-2">
-            {error.includes("Limite") ? "Limite de Requisições Atingido" : "Erro ao carregar jogos"}
+            {error.includes("Limite")
+              ? "Limite de Requisições Atingido"
+              : "Erro ao carregar jogos"}
           </h3>
           <p className="text-muted-foreground">{error}</p>
           {error.includes("Limite") && (
             <p className="text-sm text-muted-foreground mt-2">
-              Isso acontece quando há muitas requisições em pouco tempo. Por favor, aguarde alguns
-              minutos e tente novamente.
+              Isso acontece quando há muitas requisições em pouco tempo. Por
+              favor, aguarde alguns minutos e tente novamente.
               <br />
               Caso o problema persista, entre em contato com o suporte.
             </p>
@@ -256,8 +280,8 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
       <Card>
         <CardContent className="p-8 text-center">
           <p className="text-muted-foreground">
-            Nenhum jogo encontrado para {sportKey}. Pode ser que não haja eventos ativos ou odds
-            disponíveis para este esporte no momento.
+            Nenhum jogo encontrado para {sportKey}. Pode ser que não haja
+            eventos ativos ou odds disponíveis para este esporte no momento.
           </p>
         </CardContent>
       </Card>
@@ -329,7 +353,10 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
                           <p className="text-xs text-muted-foreground mb-1">
                             {translateOutcome(comparison.outcome)}
                           </p>
-                          <Badge variant="default" className="font-mono text-sm">
+                          <Badge
+                            variant="default"
+                            className="font-mono text-sm"
+                          >
                             {comparison.bestPrice.toFixed(2)}
                           </Badge>
                           <p className="text-xs text-muted-foreground mt-1">
@@ -347,27 +374,41 @@ export function OddsGamesList({ sportKey, searchTerm, sortOrder = "asc" }: OddsG
                         Comparação de Casas de Apostas
                       </h4>
                       <div className="space-y-2">
-                        {oddsData.bookmakers.map((bookmaker: BookmakerOdds, index: number) => (
-                          <div key={index} className="flex items-center justify-between text-sm">
-                            <span className="font-medium text-xs">
-                              {translateBookmaker(bookmaker.bookmaker)}
-                            </span>
-                            <div className="flex gap-2">
-                              {bookmaker.outcomes.map(
-                                (outcome: BookmakerOutcome, outcomeIndex: number) => (
-                                  <div key={outcomeIndex} className="text-center">
-                                    <div className="text-xs text-muted-foreground mb-1">
-                                      {translateOutcome(outcome.displayName)}
+                        {oddsData.bookmakers.map(
+                          (bookmaker: BookmakerOdds, index: number) => (
+                            <div
+                              key={index}
+                              className="flex items-center justify-between text-sm"
+                            >
+                              <span className="font-medium text-xs">
+                                {translateBookmaker(bookmaker.bookmaker)}
+                              </span>
+                              <div className="flex gap-2">
+                                {bookmaker.outcomes.map(
+                                  (
+                                    outcome: BookmakerOutcome,
+                                    outcomeIndex: number,
+                                  ) => (
+                                    <div
+                                      key={outcomeIndex}
+                                      className="text-center"
+                                    >
+                                      <div className="text-xs text-muted-foreground mb-1">
+                                        {translateOutcome(outcome.displayName)}
+                                      </div>
+                                      <Badge
+                                        variant="outline"
+                                        className="font-mono text-xs"
+                                      >
+                                        {outcome.price.toFixed(2)}
+                                      </Badge>
                                     </div>
-                                    <Badge variant="outline" className="font-mono text-xs">
-                                      {outcome.price.toFixed(2)}
-                                    </Badge>
-                                  </div>
-                                ),
-                              )}
+                                  ),
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        ))}
+                          ),
+                        )}
                       </div>
                     </div>
                   ) : null}
