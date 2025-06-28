@@ -47,7 +47,16 @@ export function ScoresList({
         const data = await fetchScores(sportKey);
         setScores(data);
       } catch (err) {
-        setError("Erro ao carregar scores");
+        if ((err as { status?: number }).status === 429) {
+          setError(
+            "Limite de requisições da API atingido. Aguarde alguns minutos e tente novamente."
+          );
+        } else {
+          setError(
+            (err as Error).message ||
+              "Erro ao carregar scores. Tente novamente mais tarde."
+          );
+        }
         console.error(err);
       } finally {
         setLoading(false);
@@ -105,14 +114,21 @@ export function ScoresList({
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <Trophy className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <Trophy className="h-12 w-12 text-yellow-500 mx-auto mb-4 animate-bounce" />
           <h3 className="text-lg font-semibold mb-2">
-            Erro ao carregar scores
+            {error.includes("Limite")
+              ? "Limite de Requisições Atingido"
+              : "Erro ao carregar scores"}
           </h3>
           <p className="text-muted-foreground">{error}</p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Verifique se o esporte selecionado tem jogos com scores disponíveis.
-          </p>
+          {error.includes("Limite") && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Isso acontece quando há muitas requisições em pouco tempo. Por
+              favor, aguarde alguns minutos e tente novamente.
+              <br />
+              Caso o problema persista, entre em contato com o suporte.
+            </p>
+          )}
         </CardContent>
       </Card>
     );

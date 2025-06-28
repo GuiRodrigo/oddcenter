@@ -85,12 +85,14 @@ export async function GET(req: NextRequest) {
         });
 
         if (!res.ok) {
-            console.error(`[API] Erro na API externa (${endpoint}):`, res.status, res.statusText);
+            const errorText = await res.text();
+            console.error(`[API] Erro na API externa (${endpoint}):`, res.status, res.statusText, errorText);
 
             return NextResponse.json({
                 error: `Erro ao buscar dados da Odds API (${endpoint})`,
-                status: res.status
-            }, { status: 500 });
+                status: res.status,
+                details: errorText,
+            }, { status: res.status });
         }
 
         const data = await res.json();

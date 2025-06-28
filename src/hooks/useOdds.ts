@@ -101,28 +101,33 @@ export function useOdds() {
 
             try {
                 const res = await fetch(`/api/oddsApi?${params}`)
-
                 if (!res.ok) {
-                    return []
+                    let errorMsg = "Erro ao buscar odds";
+                    const status = res.status;
+                    try {
+                        const errJson = await res.json();
+                        if (status === 429 && errJson.error?.includes("Odds API") && errJson.details?.includes("Usage quota")) {
+                            errorMsg = "Limite da cota gratuita utilizado. Aguarde ou contrate um plano para continuar.";
+                        } else {
+                            errorMsg = errJson.error || errorMsg;
+                            if (errJson.details) errorMsg += ": " + errJson.details;
+                        }
+                    } catch { }
+                    const err = new Error(errorMsg) as Error & { status?: number };
+                    err.status = status;
+                    throw err;
                 }
-
-                const contentType = res.headers.get("content-type")
+                const contentType = res.headers.get("content-type");
                 if (!contentType?.includes("application/json")) {
-                    return []
+                    throw new Error("Resposta inesperada da API");
                 }
-
-                const data = await res.json()
-
-                // Armazenar no cache
-                intelligentCache.set(cacheKey, data)
-
-                // Atualizar informações de quota
-                intelligentCache.updateQuota(res.headers)
-
-                return data as OddsEvent[]
+                const data = await res.json();
+                intelligentCache.set(cacheKey, data);
+                intelligentCache.updateQuota(res.headers);
+                return data as OddsEvent[];
             } catch (error) {
-                console.error("Erro ao buscar odds:", error)
-                return []
+                console.error("Erro ao buscar odds:", error);
+                throw error;
             }
         },
         [],
@@ -151,23 +156,29 @@ export function useOdds() {
 
             try {
                 const res = await fetch(`/api/oddsApi?${params}`)
-
                 if (!res.ok) {
-                    return []
+                    let errorMsg = "Erro ao buscar scores";
+                    const status = res.status;
+                    try {
+                        const errJson = await res.json();
+                        if (status === 429 && errJson.error?.includes("Odds API") && errJson.details?.includes("Usage quota")) {
+                            errorMsg = "Limite da cota gratuita da api utilizado. Aguarde ou contrate um plano para continuar.";
+                        } else {
+                            errorMsg = errJson.error || errorMsg;
+                            if (errJson.details) errorMsg += ": " + errJson.details;
+                        }
+                    } catch { }
+                    const err = new Error(errorMsg) as Error & { status?: number };
+                    err.status = status;
+                    throw err;
                 }
-
-                const data = await res.json()
-
-                // Armazenar no cache
-                intelligentCache.set(cacheKey, data)
-
-                // Atualizar informações de quota
-                intelligentCache.updateQuota(res.headers)
-
-                return data
+                const data = await res.json();
+                intelligentCache.set(cacheKey, data);
+                intelligentCache.updateQuota(res.headers);
+                return data;
             } catch (error) {
-                console.error("Erro ao buscar scores:", error)
-                return []
+                console.error("Erro ao buscar scores:", error);
+                throw error;
             }
         },
         [],

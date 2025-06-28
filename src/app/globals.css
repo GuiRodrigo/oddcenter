@@ -121,3 +121,29 @@
     background: linear-gradient(135deg, #18122b 0%, #312e81 100%);
   }
 }
+
+/* Scrollbar estilizada para tema escuro/roxo */
+::-webkit-scrollbar {
+  width: 10px;
+  background: #18122b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #282043;
+  border-radius: 8px;
+  border: 2px solid #18122b;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
+
+::-webkit-scrollbar-corner {
+  background: #18122b;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #282043 #18122b;
+}

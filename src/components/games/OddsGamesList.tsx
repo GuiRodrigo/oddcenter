@@ -102,12 +102,18 @@ export function OddsGamesList({
       try {
         const data = await fetchOdds(sportKey);
         setGames(data);
-        // Salvar no cache para a página de detalhes
         localStorage.setItem("cachedGames", JSON.stringify(data));
-      } catch {
-        setError(
-          `Erro ao carregar jogos para ${sportKey}. Pode ser que não haja odds disponíveis para este esporte no momento.`
-        );
+      } catch (err) {
+        if ((err as { status?: number }).status === 429) {
+          setError(
+            "Limite de requisições da API atingido. Aguarde alguns minutos e tente novamente."
+          );
+        } else {
+          setError(
+            (err as Error).message ||
+              "Erro ao carregar jogos. Tente novamente mais tarde."
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -248,7 +254,21 @@ export function OddsGamesList({
     return (
       <Card>
         <CardContent className="p-8 text-center">
+          <TrendingUp className="h-12 w-12 text-yellow-500 mx-auto mb-4 animate-bounce" />
+          <h3 className="text-lg font-semibold mb-2">
+            {error.includes("Limite")
+              ? "Limite de Requisições Atingido"
+              : "Erro ao carregar jogos"}
+          </h3>
           <p className="text-muted-foreground">{error}</p>
+          {error.includes("Limite") && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Isso acontece quando há muitas requisições em pouco tempo. Por
+              favor, aguarde alguns minutos e tente novamente.
+              <br />
+              Caso o problema persista, entre em contato com o suporte.
+            </p>
+          )}
         </CardContent>
       </Card>
     );

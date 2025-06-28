@@ -12,6 +12,7 @@ export default withAuth(
                 const { pathname } = req.nextUrl
 
 
+                // Retorna true se o usuário tentar ver as odds sem logas
                 if (pathname === "/api/oddsApi") {
                     return true
                 }
@@ -36,6 +37,6 @@ export default withAuth(
 export const config = {
     matcher: [
         // Protege todas as rotas exceto as listadas abaixo
-        "/((?!api/auth|api/oddsApi*|_next/static|_next/image|favicon.ico|login).*)",
+        "/((?!api/auth|api/oddsApi|_next/static|_next/image|favicon.ico|login).*)",
     ],
 }
