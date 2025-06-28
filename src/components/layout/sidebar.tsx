@@ -105,9 +105,19 @@ export function Sidebar({
   className,
 }: SidebarProps) {
   const { sports, loading } = useOdds();
-  const [openGroups, setOpenGroups] = useState<Set<string>>(
-    new Set(["Soccer", "Basketball"])
-  );
+  const [openGroups, setOpenGroups] = useState<Set<string>>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("openGroups");
+      if (stored) {
+        return new Set(JSON.parse(stored));
+      }
+    }
+    return new Set([]);
+  });
+
+  useEffect(() => {
+    localStorage.setItem("openGroups", JSON.stringify(Array.from(openGroups)));
+  }, [openGroups]);
 
   // Favoritos com persistência local
   const [favoriteSports, setFavoriteSports] = useState<string[]>(() => {
